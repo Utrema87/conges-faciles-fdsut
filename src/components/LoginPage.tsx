@@ -1,0 +1,113 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+
+const LoginPage = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    // Simulate login process
+    setTimeout(() => {
+      if (email && password) {
+        toast.success("Connexion réussie !");
+      } else {
+        toast.error("Veuillez remplir tous les champs");
+      }
+      setIsLoading(false);
+    }, 1500);
+  };
+
+  const handleForgotPassword = () => {
+    toast.info("Fonctionnalité de récupération de mot de passe en développement");
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary p-4">
+      <div className="w-full max-w-md">
+        {/* Logo FDSUT */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-primary rounded-full mb-4">
+            <span className="text-2xl font-bold text-primary-foreground">FDSUT</span>
+          </div>
+          <h1 className="text-2xl font-bold text-foreground">
+            Système de Gestion des Congés
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Connectez-vous à votre compte
+          </p>
+        </div>
+
+        {/* Formulaire de connexion */}
+        <Card className="shadow-lg">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl text-center">Connexion</CardTitle>
+            <CardDescription className="text-center">
+              Entrez vos identifiants pour accéder au système
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Adresse email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="votre.email@fdsut.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Mot de passe</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Votre mot de passe"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-4 pt-4">
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Connexion en cours..." : "Se connecter"}
+                </Button>
+                
+                <Button 
+                  type="button"
+                  variant="ghost"
+                  className="w-full text-primary hover:text-primary"
+                  onClick={handleForgotPassword}
+                >
+                  Mot de passe oublié ?
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Footer */}
+        <div className="text-center mt-6 text-sm text-muted-foreground">
+          <p>© 2024 FDSUT - Tous droits réservés</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;
