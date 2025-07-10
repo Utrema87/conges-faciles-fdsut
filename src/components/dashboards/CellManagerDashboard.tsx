@@ -2,9 +2,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Clock, Users, Bell } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CheckCircle, XCircle, Clock, Users, Bell, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { getPendingRequestsForCellManager, demoUsers } from "@/data/demoData";
+import ApprovalWorkflow from "@/components/workflows/ApprovalWorkflow";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
+import DashboardReports from "@/components/reports/DashboardReports";
 
 const CellManagerDashboard = () => {
   const { user } = useAuth();
@@ -12,12 +16,14 @@ const CellManagerDashboard = () => {
   const pendingRequests = getPendingRequestsForCellManager(user?.cellule || "");
   const cellEmployees = demoUsers.filter(u => u.cellule === user?.cellule && u.role === 'employee');
 
-  const handleApprove = (requestId: string) => {
-    toast.success("Demande approuvée avec succès !");
+  const handleApprove = (requestId: string, comment?: string) => {
+    toast.success("Demande approuvée et transmise au chef de service !");
+    console.log(`Approved request ${requestId}`, comment ? `with comment: ${comment}` : '');
   };
 
-  const handleReject = (requestId: string) => {
+  const handleReject = (requestId: string, comment?: string) => {
     toast.error("Demande rejetée");
+    console.log(`Rejected request ${requestId}`, comment ? `with comment: ${comment}` : '');
   };
 
   return (
@@ -81,95 +87,74 @@ const CellManagerDashboard = () => {
           </Card>
         </div>
 
-        {/* Liste des demandes en attente */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Clock className="mr-2 h-5 w-5" />
-              Demandes en Attente de Validation
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {pendingRequests.length === 0 ? (
-              <div className="text-center py-8">
-                <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Aucune demande en attente</h3>
-                <p className="text-muted-foreground">
-                  Toutes les demandes de votre cellule ont été traitées.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {pendingRequests.map(request => (
-                  <div key={request.id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center mb-2">
-                          <h4 className="font-semibold text-lg">{request.employeeName}</h4>
-                          <Badge variant="secondary" className="ml-2">
-                            {request.leaveType}
-                          </Badge>
+        {/* Onglets principaux */}
+        <Tabs defaultValue="approvals" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="approvals">Validations</TabsTrigger>
+            <TabsTrigger value="team">Mon Équipe</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="reports">Rapports</TabsTrigger>
+          </TabsList>
+
+          {/* Workflow de validation */}
+          <TabsContent value="approvals">
+            <ApprovalWorkflow 
+              requests={pendingRequests} 
+              userRole="cell_manager"
+              onApprove={handleApprove}
+              onReject={handleReject}
+            />
+          </TabsContent>
+
+          {/* Gestion de l'équipe */}
+          <TabsContent value="team">
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Users className="mr-2 h-5 w-5" />
+                  Employés de la Cellule {user?.cellule}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {cellEmployees.map(employee => (
+                    <div key={employee.id} className="border rounded-lg p-4 hover:shadow-lg transition-shadow">
+                      <h4 className="font-semibold">{employee.firstName} {employee.lastName}</h4>
+                      <p className="text-sm text-muted-foreground">{employee.position}</p>
+                      <div className="mt-3 space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Solde congé:</span>
+                          <Badge variant="outline">{employee.leaveBalance} jours</Badge>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                          <div>
-                            <p><strong>Période:</strong> Du {new Date(request.startDate).toLocaleDateString('fr-FR')} au {new Date(request.endDate).toLocaleDateString('fr-FR')}</p>
-                            <p><strong>Durée:</strong> {request.days} jour{request.days > 1 ? 's' : ''}</p>
-                          </div>
-                          <div>
-                            <p><strong>Soumise le:</strong> {new Date(request.submittedAt).toLocaleDateString('fr-FR')}</p>
-                            {request.reason && <p><strong>Motif:</strong> {request.reason}</p>}
-                          </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Statut:</span>
+                          <Badge className="bg-green-500">Actif</Badge>
                         </div>
                       </div>
+                      <div className="mt-3 flex space-x-2">
+                        <Button variant="outline" size="sm" className="flex-1">
+                          <FileText className="mr-1 h-3 w-3" />
+                          Détails
+                        </Button>
+                      </div>
                     </div>
-                    
-                    <div className="flex space-x-3">
-                      <Button 
-                        onClick={() => handleApprove(request.id)}
-                        className="flex items-center"
-                      >
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Approuver
-                      </Button>
-                      <Button 
-                        variant="destructive"
-                        onClick={() => handleReject(request.id)}
-                        className="flex items-center"
-                      >
-                        <XCircle className="mr-2 h-4 w-4" />
-                        Rejeter
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Liste des employés de la cellule */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Users className="mr-2 h-5 w-5" />
-              Employés de la Cellule {user?.cellule}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {cellEmployees.map(employee => (
-                <div key={employee.id} className="border rounded-lg p-4">
-                  <h4 className="font-semibold">{employee.firstName} {employee.lastName}</h4>
-                  <p className="text-sm text-muted-foreground">{employee.position}</p>
-                  <div className="mt-2 flex justify-between items-center">
-                    <span className="text-sm">Solde: {employee.leaveBalance} jours</span>
-                    <Badge variant="outline">{employee.role}</Badge>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Centre de notifications */}
+          <TabsContent value="notifications">
+            <NotificationCenter userId={user?.id || ""} userRole="cell_manager" />
+          </TabsContent>
+
+          {/* Rapports et analyses */}
+          <TabsContent value="reports">
+            <DashboardReports userRole="cell_manager" cellule={user?.cellule} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

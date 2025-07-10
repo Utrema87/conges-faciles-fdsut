@@ -1,6 +1,5 @@
 import { User, LeaveRequest, LeaveType } from '@/types';
 
-// Données de démonstration avec des noms sénégalais
 export const demoUsers: User[] = [
   {
     id: '1',
@@ -19,45 +18,45 @@ export const demoUsers: User[] = [
     firstName: 'Fatou',
     lastName: 'Ndiaye',
     email: 'fatou.ndiaye@fdsut.com',
-    role: 'cell_manager',
-    department: 'Informatique',
-    cellule: 'Développement',
-    service: 'IT',
-    leaveBalance: 30,
-    position: 'Chef de Cellule Développement'
+    role: 'hr',
+    department: 'Ressources Humaines',
+    service: 'RH',
+    leaveBalance: 22,
+    position: 'Responsable RH'
   },
   {
     id: '3',
     firstName: 'Ousmane',
     lastName: 'Ba',
     email: 'ousmane.ba@fdsut.com',
-    role: 'service_chief',
+    role: 'cell_manager',
     department: 'Informatique',
+    cellule: 'Développement',
     service: 'IT',
-    leaveBalance: 35,
-    position: 'Chef de Service IT'
+    leaveBalance: 20,
+    position: 'Chef de Cellule Développement'
   },
   {
     id: '4',
     firstName: 'Awa',
     lastName: 'Sarr',
     email: 'awa.sarr@fdsut.com',
-    role: 'hr',
-    department: 'Ressources Humaines',
-    service: 'RH',
-    leaveBalance: 30,
-    position: 'Responsable RH'
+    role: 'admin',
+    department: 'Administration',
+    service: 'Administration',
+    leaveBalance: 18,
+    position: 'Administrateur Système'
   },
   {
     id: '5',
     firstName: 'Ibrahima',
     lastName: 'Fall',
     email: 'ibrahima.fall@fdsut.com',
-    role: 'admin',
-    department: 'Administration',
-    service: 'ADMIN',
-    leaveBalance: 40,
-    position: 'Administrateur Système'
+    role: 'service_chief',
+    department: 'Informatique',
+    service: 'IT',
+    leaveBalance: 15,
+    position: 'Chef de Service IT'
   },
   {
     id: '6',
@@ -65,11 +64,11 @@ export const demoUsers: User[] = [
     lastName: 'Cissé',
     email: 'mariama.cisse@fdsut.com',
     role: 'employee',
-    department: 'Comptabilité',
-    cellule: 'Facturation',
-    service: 'Finance',
-    leaveBalance: 22,
-    position: 'Comptable'
+    department: 'Informatique',
+    cellule: 'Support',
+    service: 'IT',
+    leaveBalance: 28,
+    position: 'Technicienne Support'
   },
   {
     id: '7',
@@ -77,11 +76,11 @@ export const demoUsers: User[] = [
     lastName: 'Touré',
     email: 'moussa.toure@fdsut.com',
     role: 'employee',
-    department: 'Informatique',
-    cellule: 'Développement',
-    service: 'IT',
-    leaveBalance: 18,
-    position: 'Développeur Junior'
+    department: 'Finances',
+    cellule: 'Comptabilité',
+    service: 'Finance',
+    leaveBalance: 12,
+    position: 'Comptable'
   }
 ];
 
@@ -103,6 +102,7 @@ export const demoLeaveRequests: LeaveRequest[] = [
     endDate: '2024-01-25',
     days: 8,
     reason: 'Vacances familiales',
+    urgency: 'normal',
     status: 'pending_cell_manager',
     submittedAt: '2024-01-10T10:00:00Z'
   },
@@ -115,12 +115,13 @@ export const demoLeaveRequests: LeaveRequest[] = [
     endDate: '2024-01-14',
     days: 3,
     reason: 'Consultation médicale',
+    urgency: 'urgent',
     status: 'pending_service_chief',
     submittedAt: '2024-01-11T14:30:00Z',
     cellManagerApproval: {
-      approved: true,
       date: '2024-01-11T16:00:00Z',
-      comment: 'Approuvé - certificat médical fourni'
+      comment: 'Approuvé - certificat médical fourni',
+      approver: 'Ousmane Ba'
     }
   },
   {
@@ -132,42 +133,39 @@ export const demoLeaveRequests: LeaveRequest[] = [
     endDate: '2024-01-20',
     days: 1,
     reason: 'Rendez-vous administratif',
+    urgency: 'normal',
     status: 'approved',
     submittedAt: '2024-01-08T09:15:00Z',
     cellManagerApproval: {
-      approved: true,
-      date: '2024-01-08T11:00:00Z'
+      date: '2024-01-08T11:00:00Z',
+      approver: 'Ousmane Ba'
     },
     serviceChiefApproval: {
-      approved: true,
-      date: '2024-01-08T15:30:00Z'
+      date: '2024-01-08T15:30:00Z',
+      approver: 'Ibrahima Fall'
     },
     hrApproval: {
-      approved: true,
-      date: '2024-01-09T09:00:00Z'
+      date: '2024-01-09T09:00:00Z',
+      approver: 'Fatou Ndiaye'
     }
   }
 ];
 
 // Fonctions utilitaires
-export const getUserById = (id: string): User | undefined => {
-  return demoUsers.find(user => user.id === id);
-};
-
 export const getLeaveRequestsByEmployee = (employeeId: string): LeaveRequest[] => {
   return demoLeaveRequests.filter(request => request.employeeId === employeeId);
 };
 
 export const getPendingRequestsForCellManager = (cellule: string): LeaveRequest[] => {
   return demoLeaveRequests.filter(request => {
-    const employee = getUserById(request.employeeId);
+    const employee = demoUsers.find(u => u.firstName + ' ' + u.lastName === request.employeeName);
     return employee?.cellule === cellule && request.status === 'pending_cell_manager';
   });
 };
 
 export const getPendingRequestsForServiceChief = (service: string): LeaveRequest[] => {
   return demoLeaveRequests.filter(request => {
-    const employee = getUserById(request.employeeId);
+    const employee = demoUsers.find(u => u.firstName + ' ' + u.lastName === request.employeeName);
     return employee?.service === service && request.status === 'pending_service_chief';
   });
 };

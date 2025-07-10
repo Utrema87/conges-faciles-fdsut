@@ -23,22 +23,23 @@ export interface LeaveRequest {
   endDate: string;
   days: number;
   reason?: string;
+  urgency: 'normal' | 'urgent' | 'emergency';
   status: LeaveStatus;
   submittedAt: string;
   cellManagerApproval?: {
-    approved: boolean;
     date: string;
     comment?: string;
+    approver: string;
   };
   serviceChiefApproval?: {
-    approved: boolean;
     date: string;
     comment?: string;
+    approver: string;
   };
   hrApproval?: {
-    approved: boolean;
     date: string;
     comment?: string;
+    approver: string;
   };
 }
 

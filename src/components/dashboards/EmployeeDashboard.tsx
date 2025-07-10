@@ -2,36 +2,22 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock, User, MapPin, Calendar } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CalendarDays, Clock, User, Bell, FileText, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
-import { getLeaveRequestsByEmployee, demoLeaveTypes } from "@/data/demoData";
+import { getLeaveRequestsByEmployee } from "@/data/demoData";
+import LeaveRequestForm from "@/components/forms/LeaveRequestForm";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
+import DashboardReports from "@/components/reports/DashboardReports";
 
 const EmployeeDashboard = () => {
   const { user } = useAuth();
-  const [leaveType, setLeaveType] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [reason, setReason] = useState("");
-
   const userRequests = getLeaveRequestsByEmployee(user?.id || "");
 
-  const handleSubmitRequest = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!leaveType || !startDate || !endDate) {
-      toast.error("Veuillez remplir tous les champs obligatoires");
-      return;
-    }
-    
-    toast.success("Demande de congé soumise avec succès !");
-    setLeaveType("");
-    setStartDate("");
-    setEndDate("");
-    setReason("");
+  const handleFormSuccess = () => {
+    // Optionally refresh data or show additional success message
+    toast.info("Votre demande sera traitée dans les plus brefs délais");
   };
 
   const getStatusBadge = (status: string) => {
@@ -117,124 +103,85 @@ const EmployeeDashboard = () => {
           </Card>
         </div>
 
-        {/* Formulaire de demande de congé */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5" />
-              Nouvelle Demande de Congé
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmitRequest} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="leaveType">Type de congé *</Label>
-                  <Select value={leaveType} onValueChange={setLeaveType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionnez un type de congé" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {demoLeaveTypes.map(type => (
-                        <SelectItem key={type.id} value={type.name}>
-                          {type.name} (max {type.maxDays} jours)
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        {/* Onglets principaux */}
+        <Tabs defaultValue="requests" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="requests">Mes Demandes</TabsTrigger>
+            <TabsTrigger value="new">Nouvelle Demande</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="reports">Mes Statistiques</TabsTrigger>
+          </TabsList>
 
-                <div className="space-y-2">
-                  <Label htmlFor="startDate">Date de début *</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="endDate">Date de fin *</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="reason">Motif (optionnel)</Label>
-                  <Textarea
-                    id="reason"
-                    placeholder="Précisez le motif de votre demande..."
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    className="min-h-[80px]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex space-x-4">
-                <Button type="submit" className="flex-1">
-                  Soumettre la Demande
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => {
-                    setLeaveType("");
-                    setStartDate("");
-                    setEndDate("");
-                    setReason("");
-                  }}
-                >
-                  Annuler
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Historique des demandes */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Historique des Demandes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {userRequests.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">
-                Aucune demande de congé trouvée
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {userRequests.map(request => (
-                  <div key={request.id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h4 className="font-semibold">{request.leaveType}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Du {new Date(request.startDate).toLocaleDateString('fr-FR')} 
-                          au {new Date(request.endDate).toLocaleDateString('fr-FR')} 
-                          ({request.days} jour{request.days > 1 ? 's' : ''})
-                        </p>
-                      </div>
-                      {getStatusBadge(request.status)}
-                    </div>
-                    {request.reason && (
-                      <p className="text-sm text-muted-foreground">
-                        <strong>Motif:</strong> {request.reason}
-                      </p>
-                    )}
+          {/* Historique des demandes */}
+          <TabsContent value="requests">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <FileText className="mr-2 h-5 w-5" />
+                  Historique des Demandes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {userRequests.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FileText className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Aucune demande de congé</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Vous n'avez pas encore soumis de demande de congé.
+                    </p>
+                    <Button onClick={() => {
+                      const newTab = document.querySelector('[value="new"]') as HTMLElement;
+                      newTab?.click();
+                    }}>
+                      Créer ma première demande
+                    </Button>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {userRequests.map(request => (
+                      <div key={request.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h4 className="font-semibold">{request.leaveType}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Du {new Date(request.startDate).toLocaleDateString('fr-FR')} 
+                              au {new Date(request.endDate).toLocaleDateString('fr-FR')} 
+                              ({request.days} jour{request.days > 1 ? 's' : ''})
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Soumise le {new Date(request.submittedAt).toLocaleDateString('fr-FR')}
+                            </p>
+                          </div>
+                          {getStatusBadge(request.status)}
+                        </div>
+                        {request.reason && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Motif:</strong> {request.reason}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Formulaire de nouvelle demande */}
+          <TabsContent value="new">
+            <LeaveRequestForm onSubmitSuccess={handleFormSuccess} />
+          </TabsContent>
+
+          {/* Centre de notifications */}
+          <TabsContent value="notifications">
+            <NotificationCenter userId={user?.id || ""} userRole="employee" />
+          </TabsContent>
+
+          {/* Statistiques personnelles */}
+          <TabsContent value="reports">
+            <DashboardReports userRole="employee" />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
