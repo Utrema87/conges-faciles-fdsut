@@ -3,163 +3,195 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { Eye, EyeOff } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const { login, changePassword } = useAuth();
+  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      const success = login(email, password);
-      if (success) {
-        toast.success("Connexion réussie !");
+    try {
+      const result = await login(email, password);
+      
+      if (result.success) {
+        if (result.mustChangePassword) {
+          setShowChangePassword(true);
+          toast({
+            title: "Changement de mot de passe requis",
+            description: "Vous devez changer votre mot de passe temporaire.",
+          });
+        } else {
+          toast({
+            title: "Connexion réussie",
+            description: "Bienvenue !",
+          });
+        }
       } else {
-        toast.error("Identifiants incorrects");
+        toast({
+          variant: "destructive",
+          title: "Erreur de connexion",
+          description: result.error || "Email ou mot de passe incorrect",
+        });
       }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la connexion",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleForgotPassword = () => {
-    toast.info("Fonctionnalité de récupération de mot de passe en développement");
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Les mots de passe ne correspondent pas",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Le mot de passe doit contenir au moins 6 caractères",
+      });
+      return;
+    }
+
+    const result = await changePassword(newPassword);
+    
+    if (result.success) {
+      setShowChangePassword(false);
+      toast({
+        title: "Mot de passe changé",
+        description: "Votre mot de passe a été mis à jour avec succès",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: result.error || "Impossible de changer le mot de passe",
+      });
+    }
   };
 
-  // Boutons de démonstration pour tester différents rôles
-  const quickLogin = (userEmail: string) => {
-    setEmail(userEmail);
-    setPassword("demo123");
-  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary p-4">
-      <div className="w-full max-w-md">
-        {/* Logo FDSUT */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-primary rounded-full mb-4">
-            <span className="text-2xl font-bold text-primary-foreground">FDSUT</span>
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">
-            Système de Gestion des Congés
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Connectez-vous à votre compte
-          </p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900">Congés Facile</h1>
+          <p className="text-gray-600 mt-2">Gestion des congés simplifiée</p>
         </div>
 
-        {/* Boutons de démonstration */}
-        <Card className="mb-4 bg-accent/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Mode Démonstration</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => quickLogin('amadou.diallo@fdsut.com')}
-              >
-                Employé
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => quickLogin('ousmane.ba@fdsut.com')}
-              >
-                Chef Cellule
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => quickLogin('ibrahima.fall@fdsut.com')}
-              >
-                Chef Service
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => quickLogin('fatou.ndiaye@fdsut.com')}
-              >
-                RH
-              </Button>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full"
-              onClick={() => quickLogin('awa.sarr@fdsut.com')}
-            >
-              Administrateur
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Formulaire de connexion */}
-        <Card className="shadow-lg">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Connexion</CardTitle>
-            <CardDescription className="text-center">
-              Entrez vos identifiants pour accéder au système
+        <Card>
+          <CardHeader>
+            <CardTitle>Connexion</CardTitle>
+            <CardDescription>
+              Connectez-vous à votre espace
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Adresse email</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="votre.email@fdsut.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
-              
               <div className="space-y-2">
                 <Label htmlFor="password">Mot de passe</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Votre mot de passe"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
-
-              <div className="space-y-4 pt-4">
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Connexion en cours..." : "Se connecter"}
-                </Button>
-                
-                <Button 
-                  type="button"
-                  variant="ghost"
-                  className="w-full text-primary hover:text-primary"
-                  onClick={handleForgotPassword}
-                >
-                  Mot de passe oublié ?
-                </Button>
-              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Connexion..." : "Se connecter"}
+              </Button>
             </form>
           </CardContent>
         </Card>
 
-        {/* Footer */}
-        <div className="text-center mt-6 text-sm text-muted-foreground">
-          <p>© 2024 FDSUT - Tous droits réservés</p>
-        </div>
+        <Dialog open={showChangePassword} onOpenChange={setShowChangePassword}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Changer votre mot de passe</DialogTitle>
+              <DialogDescription>
+                Veuillez définir un nouveau mot de passe pour sécuriser votre compte.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">Nouveau mot de passe</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Minimum 6 caractères"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Retapez le mot de passe"
+                />
+              </div>
+              <Button onClick={handleChangePassword} className="w-full">
+                Changer le mot de passe
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <footer className="text-center text-sm text-gray-500">
+          © 2024 Congés Facile. Tous droits réservés.
+        </footer>
       </div>
     </div>
   );

@@ -12,7 +12,7 @@ import NotificationCenter from "@/components/notifications/NotificationCenter";
 import DashboardReports from "@/components/reports/DashboardReports";
 
 const EmployeeDashboard = () => {
-  const { user } = useAuth();
+  const { user, profile, logout } = useAuth();
   const userRequests = getLeaveRequestsByEmployee(user?.id || "");
 
   const handleFormSuccess = () => {
@@ -47,7 +47,7 @@ const EmployeeDashboard = () => {
               Tableau de Bord Employé
             </h1>
             <p className="text-muted-foreground">
-              Bienvenue, {user?.firstName} {user?.lastName}
+              Bienvenue, {profile?.first_name} {profile?.last_name}
             </p>
           </div>
           <Button variant="outline" onClick={() => window.location.reload()}>

@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { getPendingRequestsForHR, demoUsers, demoLeaveTypes } from "@/data/demoData";
 
 const HRDashboard = () => {
-  const { user } = useAuth();
+  const { user, profile, logout } = useAuth();
   const [selectedUser, setSelectedUser] = useState("");
   const [balanceUpdate, setBalanceUpdate] = useState("");
   
