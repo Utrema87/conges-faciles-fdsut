@@ -70,21 +70,21 @@ const LoginPage = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => quickLogin('fatou.ndiaye@fdsut.com')}
+                onClick={() => quickLogin('ousmane.ba@fdsut.com')}
               >
                 Chef Cellule
               </Button>
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => quickLogin('ousmane.ba@fdsut.com')}
+                onClick={() => quickLogin('ibrahima.fall@fdsut.com')}
               >
                 Chef Service
               </Button>
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => quickLogin('awa.sarr@fdsut.com')}
+                onClick={() => quickLogin('fatou.ndiaye@fdsut.com')}
               >
                 RH
               </Button>
@@ -93,7 +93,7 @@ const LoginPage = () => {
               variant="outline" 
               size="sm" 
               className="w-full"
-              onClick={() => quickLogin('ibrahima.fall@fdsut.com')}
+              onClick={() => quickLogin('awa.sarr@fdsut.com')}
             >
               Administrateur
             </Button>
