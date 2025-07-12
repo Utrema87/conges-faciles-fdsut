@@ -59,7 +59,7 @@ const HRDashboard = () => {
               Tableau de Bord - Ressources Humaines
             </h1>
             <p className="text-muted-foreground">
-              {user?.firstName} {user?.lastName} - Service RH
+              {profile?.first_name} {profile?.last_name} - Service RH
             </p>
           </div>
           <Button onClick={generateReport}>
