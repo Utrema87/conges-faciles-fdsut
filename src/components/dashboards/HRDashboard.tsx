@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { getPendingRequestsForHR, demoUsers, demoLeaveTypes } from "@/data/demoData";
 
 const HRDashboard = () => {
-  const { user, profile, logout } = useAuth();
+  const { user } = useAuth();
   const [selectedUser, setSelectedUser] = useState("");
   const [balanceUpdate, setBalanceUpdate] = useState("");
   
@@ -59,7 +59,7 @@ const HRDashboard = () => {
               Tableau de Bord - Ressources Humaines
             </h1>
             <p className="text-muted-foreground">
-              {profile?.first_name} {profile?.last_name} - Service RH
+              {user?.firstName} {user?.lastName} - Service RH
             </p>
           </div>
           <Button onClick={generateReport}>

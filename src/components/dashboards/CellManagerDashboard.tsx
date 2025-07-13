@@ -11,10 +11,10 @@ import NotificationCenter from "@/components/notifications/NotificationCenter";
 import DashboardReports from "@/components/reports/DashboardReports";
 
 const CellManagerDashboard = () => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   
-  const pendingRequests = getPendingRequestsForCellManager(profile?.department || "");
-  const cellEmployees = demoUsers.filter(u => u.cellule === profile?.department && u.role === 'employee');
+  const pendingRequests = getPendingRequestsForCellManager(user?.cellule || "");
+  const cellEmployees = demoUsers.filter(u => u.cellule === user?.cellule && u.role === 'employee');
 
   const handleApprove = (requestId: string, comment?: string) => {
     toast.success("Demande approuvée et transmise au chef de service !");
@@ -36,7 +36,7 @@ const CellManagerDashboard = () => {
               Tableau de Bord - Responsable de Cellule
             </h1>
             <p className="text-muted-foreground">
-              Cellule {profile?.department} - {profile?.first_name} {profile?.last_name}
+              Cellule {user?.cellule} - {user?.firstName} {user?.lastName}
             </p>
           </div>
           <Button variant="outline">
@@ -79,9 +79,9 @@ const CellManagerDashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{profile?.department}</div>
+              <div className="text-2xl font-bold text-primary">{user?.cellule}</div>
               <p className="text-xs text-muted-foreground">
-                Service {profile?.department}
+                Service {user?.service}
               </p>
             </CardContent>
           </Card>
@@ -113,7 +113,7 @@ const CellManagerDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Users className="mr-2 h-5 w-5" />
-                  Employés de la Cellule {profile?.department}
+                  Employés de la Cellule {user?.cellule}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -152,7 +152,7 @@ const CellManagerDashboard = () => {
 
           {/* Rapports et analyses */}
           <TabsContent value="reports">
-            <DashboardReports userRole="cell_manager" cellule={profile?.department} />
+            <DashboardReports userRole="cell_manager" cellule={user?.cellule} />
           </TabsContent>
         </Tabs>
       </div>

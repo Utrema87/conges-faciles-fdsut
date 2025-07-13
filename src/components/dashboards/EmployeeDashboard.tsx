@@ -12,7 +12,7 @@ import NotificationCenter from "@/components/notifications/NotificationCenter";
 import DashboardReports from "@/components/reports/DashboardReports";
 
 const EmployeeDashboard = () => {
-  const { user, profile, logout } = useAuth();
+  const { user } = useAuth();
   const userRequests = getLeaveRequestsByEmployee(user?.id || "");
 
   const handleFormSuccess = () => {
@@ -47,7 +47,7 @@ const EmployeeDashboard = () => {
               Tableau de Bord Employé
             </h1>
             <p className="text-muted-foreground">
-              Bienvenue, {profile?.first_name} {profile?.last_name}
+              Bienvenue, {user?.firstName} {user?.lastName}
             </p>
           </div>
           <Button variant="outline" onClick={() => window.location.reload()}>
@@ -65,11 +65,11 @@ const EmployeeDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2 text-sm">
-                <p><strong>Nom:</strong> {profile?.last_name}</p>
-                <p><strong>Prénom:</strong> {profile?.first_name}</p>
-                <p><strong>Poste:</strong> {profile?.position}</p>
-                <p><strong>Service:</strong> {profile?.department}</p>
-                <p><strong>Cellule:</strong> {profile?.department}</p>
+                <p><strong>Nom:</strong> {user?.lastName}</p>
+                <p><strong>Prénom:</strong> {user?.firstName}</p>
+                <p><strong>Poste:</strong> {user?.position}</p>
+                <p><strong>Service:</strong> {user?.service}</p>
+                <p><strong>Cellule:</strong> {user?.cellule}</p>
               </div>
             </CardContent>
           </Card>
@@ -80,7 +80,7 @@ const EmployeeDashboard = () => {
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">25 jours</div>
+              <div className="text-2xl font-bold text-primary">{user?.leaveBalance} jours</div>
               <p className="text-xs text-muted-foreground">
                 Congés disponibles
               </p>

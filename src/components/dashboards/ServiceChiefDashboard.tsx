@@ -7,10 +7,10 @@ import { toast } from "sonner";
 import { getPendingRequestsForServiceChief, demoUsers } from "@/data/demoData";
 
 const ServiceChiefDashboard = () => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   
-  const pendingRequests = getPendingRequestsForServiceChief(profile?.department || "");
-  const serviceEmployees = demoUsers.filter(u => u.service === profile?.department);
+  const pendingRequests = getPendingRequestsForServiceChief(user?.service || "");
+  const serviceEmployees = demoUsers.filter(u => u.service === user?.service);
 
   const handleApprove = (requestId: string) => {
     toast.success("Demande approuvée et transmise aux RH !");
@@ -30,7 +30,7 @@ const ServiceChiefDashboard = () => {
               Tableau de Bord - Chef de Service
             </h1>
             <p className="text-muted-foreground">
-              Service {profile?.department} - {profile?.first_name} {profile?.last_name}
+              Service {user?.service} - {user?.firstName} {user?.lastName}
             </p>
           </div>
           <Button variant="outline">
@@ -184,7 +184,7 @@ const ServiceChiefDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Building className="mr-2 h-5 w-5" />
-              Équipe du Service {profile?.department}
+              Équipe du Service {user?.service}
             </CardTitle>
           </CardHeader>
           <CardContent>
