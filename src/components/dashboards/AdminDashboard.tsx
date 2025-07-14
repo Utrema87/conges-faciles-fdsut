@@ -29,7 +29,9 @@ const AdminDashboard = () => {
     email: "",
     role: "",
     department: "",
-    position: ""
+    position: "",
+    cellManager: "",
+    serviceChief: ""
   });
 
   const handleCreateUser = () => {
@@ -37,6 +39,17 @@ const AdminDashboard = () => {
       toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
+
+    // Validation hiérarchique
+    if (newUserForm.role === 'employee' && (!newUserForm.cellManager || !newUserForm.serviceChief)) {
+      toast.error("Un employé doit avoir un chef de cellule et un chef de service");
+      return;
+    }
+    if (newUserForm.role === 'cell_manager' && !newUserForm.serviceChief) {
+      toast.error("Un chef de cellule doit avoir un chef de service");
+      return;
+    }
+
     toast.success(`Utilisateur ${newUserForm.firstName} ${newUserForm.lastName} créé avec succès !`);
     setNewUserForm({
       firstName: "",
@@ -44,9 +57,15 @@ const AdminDashboard = () => {
       email: "",
       role: "",
       department: "",
-      position: ""
+      position: "",
+      cellManager: "",
+      serviceChief: ""
     });
   };
+
+  // Filtrer les utilisateurs selon leur rôle
+  const getCellManagers = () => demoUsers.filter(u => u.role === 'cell_manager');
+  const getServiceChiefs = () => demoUsers.filter(u => u.role === 'service_chief');
 
   const handleDeleteUser = (userId: string, userName: string) => {
     toast.success(`Utilisateur ${userName} supprimé`);
@@ -231,6 +250,49 @@ const AdminDashboard = () => {
                       onChange={(e) => setNewUserForm({...newUserForm, position: e.target.value})}
                     />
                   </div>
+
+                  {/* Champs hiérarchiques conditionnels */}
+                  {(newUserForm.role === 'employee' || newUserForm.role === 'cell_manager') && (
+                    <div className="space-y-2">
+                      <Label>Chef de Service *</Label>
+                      <Select 
+                        value={newUserForm.serviceChief} 
+                        onValueChange={(value) => setNewUserForm({...newUserForm, serviceChief: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un chef de service" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getServiceChiefs().map(chief => (
+                            <SelectItem key={chief.id} value={chief.id}>
+                              {chief.firstName} {chief.lastName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {newUserForm.role === 'employee' && (
+                    <div className="space-y-2">
+                      <Label>Chef de Cellule *</Label>
+                      <Select 
+                        value={newUserForm.cellManager} 
+                        onValueChange={(value) => setNewUserForm({...newUserForm, cellManager: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un chef de cellule" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getCellManagers().map(manager => (
+                            <SelectItem key={manager.id} value={manager.id}>
+                              {manager.firstName} {manager.lastName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   <Button onClick={handleCreateUser} className="w-full">
                     Créer l'Utilisateur
