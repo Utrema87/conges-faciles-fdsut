@@ -173,3 +173,86 @@ export const getPendingRequestsForServiceChief = (service: string): LeaveRequest
 export const getPendingRequestsForHR = (): LeaveRequest[] => {
   return demoLeaveRequests.filter(request => request.status === 'pending_hr');
 };
+
+// Fonction pour ajouter une nouvelle demande
+export const addNewLeaveRequest = (request: LeaveRequest): void => {
+  demoLeaveRequests.push(request);
+};
+
+// Fonction pour approuver une demande avec workflow automatique
+export const approveLeaveRequest = (requestId: string, approverName: string, userRole: string, comment?: string): void => {
+  const requestIndex = demoLeaveRequests.findIndex(req => req.id === requestId);
+  if (requestIndex === -1) return;
+
+  const request = demoLeaveRequests[requestIndex];
+  const now = new Date().toISOString();
+
+  switch (userRole) {
+    case 'cell_manager':
+      if (request.status === 'pending_cell_manager') {
+        request.cellManagerApproval = {
+          date: now,
+          comment,
+          approver: approverName
+        };
+        // Automatiquement transmis au chef de service
+        request.status = 'pending_service_chief';
+      }
+      break;
+    
+    case 'service_chief':
+      if (request.status === 'pending_service_chief') {
+        request.serviceChiefApproval = {
+          date: now,
+          comment,
+          approver: approverName
+        };
+        // Automatiquement transmis au RH
+        request.status = 'pending_hr';
+      }
+      break;
+    
+    case 'hr':
+      if (request.status === 'pending_hr') {
+        request.hrApproval = {
+          date: now,
+          comment,
+          approver: approverName
+        };
+        // Approuvé définitivement
+        request.status = 'approved';
+      }
+      break;
+  }
+};
+
+// Fonction pour rejeter une demande
+export const rejectLeaveRequest = (requestId: string, approverName: string, userRole: string, comment?: string): void => {
+  const requestIndex = demoLeaveRequests.findIndex(req => req.id === requestId);
+  if (requestIndex === -1) return;
+
+  const request = demoLeaveRequests[requestIndex];
+  const now = new Date().toISOString();
+
+  // Une demande rejetée à n'importe quel niveau devient "rejected"
+  request.status = 'rejected';
+  
+  // Enregistrer qui a rejeté et quand
+  const rejectionInfo = {
+    date: now,
+    comment,
+    approver: approverName
+  };
+
+  switch (userRole) {
+    case 'cell_manager':
+      request.cellManagerApproval = rejectionInfo;
+      break;
+    case 'service_chief':
+      request.serviceChiefApproval = rejectionInfo;
+      break;
+    case 'hr':
+      request.hrApproval = rejectionInfo;
+      break;
+  }
+};

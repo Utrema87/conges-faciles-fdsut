@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle, XCircle, Clock, Users, Bell, FileText } from "lucide-react";
 import { toast } from "sonner";
-import { getPendingRequestsForCellManager, demoUsers } from "@/data/demoData";
+import { getPendingRequestsForCellManager, demoUsers, approveLeaveRequest, rejectLeaveRequest } from "@/data/demoData";
 import ApprovalWorkflow from "@/components/workflows/ApprovalWorkflow";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import DashboardReports from "@/components/reports/DashboardReports";
@@ -17,13 +17,23 @@ const CellManagerDashboard = () => {
   const cellEmployees = demoUsers.filter(u => u.cellule === user?.cellule && u.role === 'employee');
 
   const handleApprove = (requestId: string, comment?: string) => {
-    toast.success("Demande approuvée et transmise au chef de service !");
-    console.log(`Approved request ${requestId}`, comment ? `with comment: ${comment}` : '');
+    if (!user) return;
+    
+    approveLeaveRequest(requestId, `${user.firstName} ${user.lastName}`, 'cell_manager', comment);
+    toast.success("Demande approuvée et transmise automatiquement au chef de service !");
+    
+    // Forcer le re-render en réactualisant la page
+    window.location.reload();
   };
 
   const handleReject = (requestId: string, comment?: string) => {
+    if (!user) return;
+    
+    rejectLeaveRequest(requestId, `${user.firstName} ${user.lastName}`, 'cell_manager', comment);
     toast.error("Demande rejetée");
-    console.log(`Rejected request ${requestId}`, comment ? `with comment: ${comment}` : '');
+    
+    // Forcer le re-render en réactualisant la page
+    window.location.reload();
   };
 
   return (

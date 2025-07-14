@@ -17,7 +17,7 @@ import {
   Calendar
 } from "lucide-react";
 import { toast } from "sonner";
-import { getPendingRequestsForHR, demoUsers, demoLeaveTypes } from "@/data/demoData";
+import { getPendingRequestsForHR, demoUsers, demoLeaveTypes, approveLeaveRequest, rejectLeaveRequest } from "@/data/demoData";
 
 const HRDashboard = () => {
   const { user } = useAuth();
@@ -28,11 +28,23 @@ const HRDashboard = () => {
   const totalEmployees = demoUsers.filter(u => u.role === 'employee').length;
 
   const handleFinalApproval = (requestId: string) => {
+    if (!user) return;
+    
+    approveLeaveRequest(requestId, `${user.firstName} ${user.lastName}`, 'hr');
     toast.success("Demande approuvée définitivement et solde mis à jour !");
+    
+    // Forcer le re-render en réactualisant la page
+    window.location.reload();
   };
 
   const handleFinalReject = (requestId: string) => {
+    if (!user) return;
+    
+    rejectLeaveRequest(requestId, `${user.firstName} ${user.lastName}`, 'hr');
     toast.error("Demande rejetée définitivement");
+    
+    // Forcer le re-render en réactualisant la page
+    window.location.reload();
   };
 
   const handleUpdateBalance = () => {

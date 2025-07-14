@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Clock, Building, Bell, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
-import { getPendingRequestsForServiceChief, demoUsers } from "@/data/demoData";
+import { getPendingRequestsForServiceChief, demoUsers, approveLeaveRequest, rejectLeaveRequest } from "@/data/demoData";
 
 const ServiceChiefDashboard = () => {
   const { user } = useAuth();
@@ -13,11 +13,23 @@ const ServiceChiefDashboard = () => {
   const serviceEmployees = demoUsers.filter(u => u.service === user?.service);
 
   const handleApprove = (requestId: string) => {
-    toast.success("Demande approuvée et transmise aux RH !");
+    if (!user) return;
+    
+    approveLeaveRequest(requestId, `${user.firstName} ${user.lastName}`, 'service_chief');
+    toast.success("Demande approuvée et transmise automatiquement aux RH !");
+    
+    // Forcer le re-render en réactualisant la page
+    window.location.reload();
   };
 
   const handleReject = (requestId: string) => {
+    if (!user) return;
+    
+    rejectLeaveRequest(requestId, `${user.firstName} ${user.lastName}`, 'service_chief');
     toast.error("Demande rejetée");
+    
+    // Forcer le re-render en réactualisant la page
+    window.location.reload();
   };
 
   return (
