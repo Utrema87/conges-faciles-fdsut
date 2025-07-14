@@ -20,20 +20,14 @@ const CellManagerDashboard = () => {
     if (!user) return;
     
     approveLeaveRequest(requestId, `${user.firstName} ${user.lastName}`, 'cell_manager', comment);
-    toast.success("Demande approuvée et transmise automatiquement au chef de service !");
-    
-    // Forcer le re-render en réactualisant la page
-    window.location.reload();
+    toast.success("Votre demande a été transmise avec succès au chef de service !");
   };
 
   const handleReject = (requestId: string, comment?: string) => {
     if (!user) return;
     
     rejectLeaveRequest(requestId, `${user.firstName} ${user.lastName}`, 'cell_manager', comment);
-    toast.error("Demande rejetée");
-    
-    // Forcer le re-render en réactualisant la page
-    window.location.reload();
+    toast.success("Votre demande a été transmise avec succès.");
   };
 
   return (

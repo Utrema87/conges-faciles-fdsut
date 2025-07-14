@@ -31,20 +31,14 @@ const HRDashboard = () => {
     if (!user) return;
     
     approveLeaveRequest(requestId, `${user.firstName} ${user.lastName}`, 'hr');
-    toast.success("Demande approuvée définitivement et solde mis à jour !");
-    
-    // Forcer le re-render en réactualisant la page
-    window.location.reload();
+    toast.success("Votre demande a été transmise avec succès !");
   };
 
   const handleFinalReject = (requestId: string) => {
     if (!user) return;
     
     rejectLeaveRequest(requestId, `${user.firstName} ${user.lastName}`, 'hr');
-    toast.error("Demande rejetée définitivement");
-    
-    // Forcer le re-render en réactualisant la page
-    window.location.reload();
+    toast.success("Votre demande a été transmise avec succès.");
   };
 
   const handleUpdateBalance = () => {

@@ -16,20 +16,14 @@ const ServiceChiefDashboard = () => {
     if (!user) return;
     
     approveLeaveRequest(requestId, `${user.firstName} ${user.lastName}`, 'service_chief');
-    toast.success("Demande approuvée et transmise automatiquement aux RH !");
-    
-    // Forcer le re-render en réactualisant la page
-    window.location.reload();
+    toast.success("Votre demande a été transmise avec succès aux RH !");
   };
 
   const handleReject = (requestId: string) => {
     if (!user) return;
     
     rejectLeaveRequest(requestId, `${user.firstName} ${user.lastName}`, 'service_chief');
-    toast.error("Demande rejetée");
-    
-    // Forcer le re-render en réactualisant la page
-    window.location.reload();
+    toast.success("Votre demande a été transmise avec succès.");
   };
 
   return (
