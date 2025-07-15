@@ -53,7 +53,13 @@ const LeaveRequestForm = ({ onSubmitSuccess }: LeaveRequestFormProps) => {
       return;
     }
 
-    // Créer la nouvelle demande avec statut automatiquement défini sur "pending_cell_manager"
+    // Définir le statut initial selon le rôle de l'utilisateur
+    let initialStatus: 'pending_cell_manager' | 'pending_service_chief' = 'pending_cell_manager';
+    if (user.role === 'cell_manager') {
+      initialStatus = 'pending_service_chief';
+    }
+
+    // Créer la nouvelle demande
     const newRequest = {
       id: Date.now().toString(),
       employeeId: user.id,
@@ -64,14 +70,19 @@ const LeaveRequestForm = ({ onSubmitSuccess }: LeaveRequestFormProps) => {
       days: days,
       reason: formData.reason || undefined,
       urgency: formData.urgency as 'normal' | 'urgent' | 'emergency',
-      status: 'pending_cell_manager' as const,
+      status: initialStatus,
       submittedAt: new Date().toISOString()
     };
 
     // Ajouter la demande au système
     addNewLeaveRequest(newRequest);
 
-    toast.success(`Demande de congé soumise avec succès ! (${days} jour${days > 1 ? 's' : ''}) - Transmise automatiquement au chef de cellule`);
+    // Message de succès selon le rôle
+    const successMessage = user.role === 'cell_manager' 
+      ? `Demande de congé soumise avec succès ! (${days} jour${days > 1 ? 's' : ''}) - Transmise automatiquement au chef de service`
+      : `Demande de congé soumise avec succès ! (${days} jour${days > 1 ? 's' : ''}) - Transmise automatiquement au chef de cellule`;
+    
+    toast.success(successMessage);
     
     // Reset form
     setFormData({

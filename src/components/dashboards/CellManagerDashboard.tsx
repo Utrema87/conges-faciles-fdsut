@@ -9,6 +9,7 @@ import { getPendingRequestsForCellManager, demoUsers, approveLeaveRequest, rejec
 import ApprovalWorkflow from "@/components/workflows/ApprovalWorkflow";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import DashboardReports from "@/components/reports/DashboardReports";
+import LeaveRequestForm from "@/components/forms/LeaveRequestForm";
 
 const CellManagerDashboard = () => {
   const { user } = useAuth();
@@ -93,8 +94,9 @@ const CellManagerDashboard = () => {
 
         {/* Onglets principaux */}
         <Tabs defaultValue="approvals" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="approvals">Validations</TabsTrigger>
+            <TabsTrigger value="my-requests">Mes Demandes</TabsTrigger>
             <TabsTrigger value="team">Mon Équipe</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="reports">Rapports</TabsTrigger>
@@ -108,6 +110,11 @@ const CellManagerDashboard = () => {
               onApprove={handleApprove}
               onReject={handleReject}
             />
+          </TabsContent>
+
+          {/* Mes demandes de congés */}
+          <TabsContent value="my-requests">
+            <LeaveRequestForm onSubmitSuccess={() => toast.success("Votre demande a été transmise avec succès au chef de service !")} />
           </TabsContent>
 
           {/* Gestion de l'équipe */}
