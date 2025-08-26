@@ -1,0 +1,429 @@
+{
+  "info": {
+    "name": "Leave Management System APIs",
+    "description": "Collection complète pour tester les APIs du système de gestion des congés",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://gazgeminiofjtbunnclv.supabase.co/rest/v1"
+    },
+    {
+      "key": "api_key",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhemdlbWluaW9manRidW5uY2x2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyMzAyNjcsImV4cCI6MjA2NzgwNjI2N30.FEChpCsU4wASSVgePFKE7a5ZYT3NZM0ya7MMjc3l9UY"
+    }
+  ],
+  "item": [
+    {
+      "name": "👥 PROFILES",
+      "item": [
+        {
+          "name": "GET - Lister tous les profils",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/profiles?select=*",
+              "host": ["{{base_url}}"],
+              "path": ["profiles"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Créer un profil",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"test-user-id-123\",\n  \"email\": \"testuser@example.com\",\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Dupont\",\n  \"department\": \"Informatique\",\n  \"position\": \"Développeur\",\n  \"phone\": \"0123456789\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/profiles",
+              "host": ["{{base_url}}"],
+              "path": ["profiles"]
+            }
+          }
+        },
+        {
+          "name": "PATCH - Modifier un profil",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"position\": \"Chef de projet\",\n  \"phone\": \"0987654321\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/profiles?user_id=eq.test-user-id-123",
+              "host": ["{{base_url}}"],
+              "path": ["profiles"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "eq.test-user-id-123"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎭 USER ROLES",
+      "item": [
+        {
+          "name": "GET - Lister tous les rôles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user_roles?select=*",
+              "host": ["{{base_url}}"],
+              "path": ["user_roles"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Assigner un rôle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"test-user-id-123\",\n  \"role\": \"employee\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user_roles",
+              "host": ["{{base_url}}"],
+              "path": ["user_roles"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏖️ LEAVE REQUESTS",
+      "item": [
+        {
+          "name": "GET - Lister toutes les demandes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/leave_requests?select=*",
+              "host": ["{{base_url}}"],
+              "path": ["leave_requests"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Demandes par statut",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/leave_requests?status=eq.pending&select=*",
+              "host": ["{{base_url}}"],
+              "path": ["leave_requests"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "eq.pending"
+                },
+                {
+                  "key": "select",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Créer une demande de congé",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"ff8f925d-8bd1-46ef-aaf9-3773e7839e5d\",\n  \"type\": \"vacation\",\n  \"start_date\": \"2025-02-10\",\n  \"end_date\": \"2025-02-14\",\n  \"reason\": \"Congés annuels - Test Postman\",\n  \"status\": \"pending\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/leave_requests",
+              "host": ["{{base_url}}"],
+              "path": ["leave_requests"]
+            }
+          }
+        },
+        {
+          "name": "PATCH - Approuver une demande",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"approved_at\": \"2025-01-15T10:00:00Z\",\n  \"approver_id\": \"ff8f925d-8bd1-46ef-aaf9-3773e7839e5d\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/leave_requests?id=eq.REMPLACER_PAR_ID_REEL",
+              "host": ["{{base_url}}"],
+              "path": ["leave_requests"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "eq.REMPLACER_PAR_ID_REEL",
+                  "description": "Remplacez par l'ID réel d'une demande"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH - Rejeter une demande",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"rejected\",\n  \"approver_id\": \"ff8f925d-8bd1-46ef-aaf9-3773e7839e5d\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/leave_requests?id=eq.REMPLACER_PAR_ID_REEL",
+              "host": ["{{base_url}}"],
+              "path": ["leave_requests"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "eq.REMPLACER_PAR_ID_REEL"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔍 TESTS AVANCÉS",
+      "item": [
+        {
+          "name": "GET - Jointure Profils + Rôles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/profiles?select=*,user_roles(*)",
+              "host": ["{{base_url}}"],
+              "path": ["profiles"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "*,user_roles(*)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Demandes avec profil utilisateur",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/leave_requests?select=*,profiles!user_id(*)",
+              "host": ["{{base_url}}"],
+              "path": ["leave_requests"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "*,profiles!user_id(*)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Count total des demandes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Prefer",
+                "value": "count=exact"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/leave_requests?select=*",
+              "host": ["{{base_url}}"],
+              "path": ["leave_requests"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
