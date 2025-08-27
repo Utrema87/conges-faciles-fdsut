@@ -164,10 +164,16 @@ vi.mock('@/hooks/useAuth', () => ({
 
 ## Tests disponibles
 
-### Composants testés :
+### Tests unitaires :
 - ✅ `LoginPage` - Test du formulaire de connexion
 - ✅ `useToast` - Test du hook de notifications
 - ✅ `demoData` - Test des utilitaires de données
+
+### Tests d'APIs :
+- ✅ Collection Postman complète disponible dans `postman-collection.json`
+- ✅ Documentation complète des APIs dans `API-TESTING.md`
+- ✅ Tests automatisés pour tous les endpoints Supabase
+- ✅ Scénarios de test complets avec exemples de réponses
 
 ### Pour ajouter de nouveaux tests :
 
