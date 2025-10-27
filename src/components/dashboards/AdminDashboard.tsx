@@ -319,7 +319,7 @@ const AdminDashboard = () => {
 
                   <div className="space-y-2">
                     <Label>Rôle *</Label>
-                    <Select value={newUserForm.role} onValueChange={(value) => setNewUserForm({...newUserForm, role: value})}>
+                    <Select value={newUserForm.role} onValueChange={(value) => setNewUserForm({...newUserForm, role: value as UserRole | ""})}>
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner un rôle" />
                       </SelectTrigger>
@@ -503,12 +503,6 @@ const AdminDashboard = () => {
                       <span>Départements</span>
                       <Badge variant="secondary">
                         {[...new Set(users.map(u => u.department).filter(Boolean))].length}
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Cellules actives</span>
-                      <Badge variant="outline">
-                        {[...new Set(demoUsers.map(u => u.cellule).filter(Boolean))].length}
                       </Badge>
                     </div>
                   </div>
