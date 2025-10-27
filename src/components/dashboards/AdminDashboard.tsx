@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,10 +16,12 @@ import {
   UserPlus,
   Edit,
   Trash2,
-  Activity
+  Activity,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
-import { demoUsers, demoLeaveRequests } from "@/data/demoData";
+import { adminService, UserProfile } from "@/services/adminService";
+import { UserRole } from "@/types";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -27,48 +29,122 @@ const AdminDashboard = () => {
     firstName: "",
     lastName: "",
     email: "",
-    role: "",
+    password: "",
+    role: "" as UserRole | "",
     department: "",
     position: "",
-    cellManager: "",
-    serviceChief: ""
+    cellule: "",
+    service: ""
   });
+  
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [cellManagers, setCellManagers] = useState<UserProfile[]>([]);
+  const [serviceChiefs, setServiceChiefs] = useState<UserProfile[]>([]);
+  const [statistics, setStatistics] = useState({
+    totalUsers: 0,
+    totalRequests: 0,
+    pendingRequests: 0
+  });
+  const [roleDistribution, setRoleDistribution] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleCreateUser = () => {
-    if (!newUserForm.firstName || !newUserForm.lastName || !newUserForm.email || !newUserForm.role) {
+  // Charger les données au montage du composant
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [allUsers, stats, rolesDist, managers, chiefs] = await Promise.all([
+        adminService.getAllUsers(),
+        adminService.getStatistics(),
+        adminService.getRoleDistribution(),
+        adminService.getUsersByRole('cell_manager'),
+        adminService.getUsersByRole('service_chief')
+      ]);
+
+      setUsers(allUsers);
+      setStatistics(stats);
+      setRoleDistribution(rolesDist);
+      setCellManagers(managers);
+      setServiceChiefs(chiefs);
+    } catch (error) {
+      toast.error("Erreur lors du chargement des données");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateUser = async () => {
+    if (!newUserForm.firstName || !newUserForm.lastName || !newUserForm.email || 
+        !newUserForm.password || !newUserForm.role) {
       toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
 
-    // Validation hiérarchique
-    if (newUserForm.role === 'employee' && (!newUserForm.cellManager || !newUserForm.serviceChief)) {
-      toast.error("Un employé doit avoir un chef de cellule et un chef de service");
-      return;
-    }
-    if (newUserForm.role === 'cell_manager' && !newUserForm.serviceChief) {
-      toast.error("Un chef de cellule doit avoir un chef de service");
+    if (newUserForm.password.length < 6) {
+      toast.error("Le mot de passe doit contenir au moins 6 caractères");
       return;
     }
 
-    toast.success(`Utilisateur ${newUserForm.firstName} ${newUserForm.lastName} créé avec succès !`);
-    setNewUserForm({
-      firstName: "",
-      lastName: "",
-      email: "",
-      role: "",
-      department: "",
-      position: "",
-      cellManager: "",
-      serviceChief: ""
-    });
+    setSubmitting(true);
+    try {
+      const result = await adminService.createUser({
+        email: newUserForm.email,
+        password: newUserForm.password,
+        firstName: newUserForm.firstName,
+        lastName: newUserForm.lastName,
+        role: newUserForm.role as UserRole,
+        department: newUserForm.department,
+        position: newUserForm.position,
+        cellule: newUserForm.cellule,
+        service: newUserForm.service
+      });
+
+      if (result.success) {
+        toast.success(`Utilisateur ${newUserForm.firstName} ${newUserForm.lastName} créé avec succès !`);
+        setNewUserForm({
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "",
+          role: "",
+          department: "",
+          position: "",
+          cellule: "",
+          service: ""
+        });
+        // Recharger les données
+        loadData();
+      } else {
+        toast.error(`Erreur: ${result.error}`);
+      }
+    } catch (error: any) {
+      toast.error(`Erreur lors de la création: ${error.message}`);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  // Filtrer les utilisateurs selon leur rôle
-  const getCellManagers = () => demoUsers.filter(u => u.role === 'cell_manager');
-  const getServiceChiefs = () => demoUsers.filter(u => u.role === 'service_chief');
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${userName} ?`)) {
+      return;
+    }
 
-  const handleDeleteUser = (userId: string, userName: string) => {
-    toast.success(`Utilisateur ${userName} supprimé`);
+    try {
+      const result = await adminService.deleteUser(userId);
+      if (result.success) {
+        toast.success(`Utilisateur ${userName} supprimé avec succès`);
+        loadData();
+      } else {
+        toast.error(`Erreur: ${result.error}`);
+      }
+    } catch (error: any) {
+      toast.error(`Erreur lors de la suppression: ${error.message}`);
+    }
   };
 
   const handleEditUser = (userId: string, userName: string) => {
@@ -87,9 +163,20 @@ const AdminDashboard = () => {
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
-  const totalUsers = demoUsers.length;
-  const totalRequests = demoLeaveRequests.length;
-  const pendingRequests = demoLeaveRequests.filter(r => r.status.includes('pending')).length;
+  const getUserRole = (user: UserProfile): string => {
+    return user.roles?.[0]?.role || 'employee';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">Chargement des données...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -118,7 +205,7 @@ const AdminDashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{totalUsers}</div>
+              <div className="text-2xl font-bold text-primary">{statistics.totalUsers}</div>
               <p className="text-xs text-muted-foreground">
                 Comptes actifs
               </p>
@@ -131,7 +218,7 @@ const AdminDashboard = () => {
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{totalRequests}</div>
+              <div className="text-2xl font-bold text-primary">{statistics.totalRequests}</div>
               <p className="text-xs text-muted-foreground">
                 Depuis le début
               </p>
@@ -144,7 +231,7 @@ const AdminDashboard = () => {
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{pendingRequests}</div>
+              <div className="text-2xl font-bold text-primary">{statistics.pendingRequests}</div>
               <p className="text-xs text-muted-foreground">
                 Demandes en cours
               </p>
@@ -158,7 +245,9 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                {Math.round(((totalRequests - pendingRequests) / totalRequests) * 100)}%
+                {statistics.totalRequests > 0 
+                  ? Math.round(((statistics.totalRequests - statistics.pendingRequests) / statistics.totalRequests) * 100)
+                  : 0}%
               </div>
               <p className="text-xs text-muted-foreground">
                 Demandes traitées
@@ -218,6 +307,17 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="space-y-2">
+                    <Label>Mot de passe *</Label>
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      value={newUserForm.password}
+                      onChange={(e) => setNewUserForm({...newUserForm, password: e.target.value})}
+                    />
+                    <p className="text-xs text-muted-foreground">Minimum 6 caractères</p>
+                  </div>
+
+                  <div className="space-y-2">
                     <Label>Rôle *</Label>
                     <Select value={newUserForm.role} onValueChange={(value) => setNewUserForm({...newUserForm, role: value})}>
                       <SelectTrigger>
@@ -251,51 +351,37 @@ const AdminDashboard = () => {
                     />
                   </div>
 
-                  {/* Champs hiérarchiques conditionnels */}
-                  {(newUserForm.role === 'employee' || newUserForm.role === 'cell_manager') && (
-                    <div className="space-y-2">
-                      <Label>Chef de Service *</Label>
-                      <Select 
-                        value={newUserForm.serviceChief} 
-                        onValueChange={(value) => setNewUserForm({...newUserForm, serviceChief: value})}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un chef de service" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getServiceChiefs().map(chief => (
-                            <SelectItem key={chief.id} value={chief.id}>
-                              {chief.firstName} {chief.lastName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <Label>Service</Label>
+                    <Input
+                      placeholder="IT"
+                      value={newUserForm.service}
+                      onChange={(e) => setNewUserForm({...newUserForm, service: e.target.value})}
+                    />
+                  </div>
 
-                  {newUserForm.role === 'employee' && (
-                    <div className="space-y-2">
-                      <Label>Chef de Cellule *</Label>
-                      <Select 
-                        value={newUserForm.cellManager} 
-                        onValueChange={(value) => setNewUserForm({...newUserForm, cellManager: value})}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un chef de cellule" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getCellManagers().map(manager => (
-                            <SelectItem key={manager.id} value={manager.id}>
-                              {manager.firstName} {manager.lastName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <Label>Cellule</Label>
+                    <Input
+                      placeholder="Développement"
+                      value={newUserForm.cellule}
+                      onChange={(e) => setNewUserForm({...newUserForm, cellule: e.target.value})}
+                    />
+                  </div>
 
-                  <Button onClick={handleCreateUser} className="w-full">
-                    Créer l'Utilisateur
+                  <Button 
+                    onClick={handleCreateUser} 
+                    className="w-full"
+                    disabled={submitting}
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Création en cours...
+                      </>
+                    ) : (
+                      'Créer l\'Utilisateur'
+                    )}
                   </Button>
                 </CardContent>
               </Card>
@@ -311,36 +397,42 @@ const AdminDashboard = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4 max-h-96 overflow-y-auto">
-                      {demoUsers.map(user => (
-                        <div key={user.id} className="flex justify-between items-center p-4 border rounded-lg">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3">
-                              <div>
-                                <h4 className="font-semibold">{user.firstName} {user.lastName}</h4>
-                                <p className="text-sm text-muted-foreground">{user.email}</p>
-                                <p className="text-sm text-muted-foreground">{user.position} - {user.department}</p>
+                      {users.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-8">
+                          Aucun utilisateur trouvé
+                        </p>
+                      ) : (
+                        users.map(userProfile => (
+                          <div key={userProfile.id} className="flex justify-between items-center p-4 border rounded-lg">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3">
+                                <div>
+                                  <h4 className="font-semibold">{userProfile.first_name} {userProfile.last_name}</h4>
+                                  <p className="text-sm text-muted-foreground">{userProfile.email}</p>
+                                  <p className="text-sm text-muted-foreground">{userProfile.position || 'N/A'} - {userProfile.department || 'N/A'}</p>
+                                </div>
+                                {getRoleBadge(getUserRole(userProfile))}
                               </div>
-                              {getRoleBadge(user.role)}
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditUser(userProfile.id, `${userProfile.first_name} ${userProfile.last_name}`)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteUser(userProfile.id, `${userProfile.first_name} ${userProfile.last_name}`)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditUser(user.id, `${user.firstName} ${user.lastName}`)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteUser(user.id, `${user.firstName} ${user.lastName}`)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -366,7 +458,7 @@ const AdminDashboard = () => {
                     { role: 'hr', label: 'Ressources Humaines', icon: Settings },
                     { role: 'admin', label: 'Administrateurs', icon: Shield }
                   ].map(({ role, label, icon: Icon }) => {
-                    const count = demoUsers.filter(u => u.role === role).length;
+                    const count = roleDistribution[role] || 0;
                     return (
                       <Card key={role}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -401,16 +493,16 @@ const AdminDashboard = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span>Demandes ce mois</span>
-                      <Badge>{totalRequests}</Badge>
+                      <Badge>{statistics.totalRequests}</Badge>
                     </div>
                     <div className="flex justify-between items-center">
                       <span>Utilisateurs actifs</span>
-                      <Badge className="bg-green-500">{totalUsers}</Badge>
+                      <Badge className="bg-green-500">{statistics.totalUsers}</Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>Services configurés</span>
+                      <span>Départements</span>
                       <Badge variant="secondary">
-                        {[...new Set(demoUsers.map(u => u.service))].length}
+                        {[...new Set(users.map(u => u.department).filter(Boolean))].length}
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
