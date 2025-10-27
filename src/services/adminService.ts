@@ -25,51 +25,41 @@ export interface UserProfile {
 }
 
 export const adminService = {
-  // Créer un nouvel utilisateur
+  // Créer un nouvel utilisateur via Edge Function
   async createUser(userData: CreateUserData) {
     try {
-      // 1. Créer le compte d'authentification via l'API admin
-      // Note: Cela nécessite les privilèges admin dans Supabase
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: userData.email,
-        password: userData.password,
-        email_confirm: true,
-        user_metadata: {
-          first_name: userData.firstName,
-          last_name: userData.lastName,
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      const response = await fetch(
+        `https://gazgeminiofjtbunnclv.supabase.co/functions/v1/create-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: userData.email,
+            password: userData.password,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            role: userData.role,
+            department: userData.department,
+            position: userData.position,
+          }),
         }
-      });
+      );
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Utilisateur non créé");
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create user');
+      }
 
-      const userId = authData.user.id;
-
-      // 2. Créer le profil utilisateur
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: userId,
-          first_name: userData.firstName,
-          last_name: userData.lastName,
-          email: userData.email,
-          department: userData.department,
-          position: userData.position
-        });
-
-      if (profileError) throw profileError;
-
-      // 3. Assigner le rôle
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: userData.role
-        });
-
-      if (roleError) throw roleError;
-
-      return { success: true, userId };
+      return { success: true, userId: result.userId };
     } catch (error: any) {
       console.error('Erreur création utilisateur:', error);
       return { success: false, error: error.message };
@@ -135,13 +125,31 @@ export const adminService = {
     }
   },
 
-  // Supprimer un utilisateur
+  // Supprimer un utilisateur via Edge Function
   async deleteUser(userId: string) {
     try {
-      // Supabase gère les suppressions en cascade via les foreign keys
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      const response = await fetch(
+        `https://gazgeminiofjtbunnclv.supabase.co/functions/v1/delete-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId }),
+        }
+      );
+
+      const result = await response.json();
       
-      if (error) throw error;
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete user');
+      }
 
       return { success: true };
     } catch (error: any) {

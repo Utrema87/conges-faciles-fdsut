@@ -16,27 +16,21 @@ const LoginPage = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      const success = login(email, password);
-      if (success) {
-        toast.success("Connexion réussie !");
-      } else {
-        toast.error("Identifiants incorrects");
-      }
-      setIsLoading(false);
-    }, 1000);
+    const success = await login(email, password);
+    if (success) {
+      toast.success("Connexion réussie !");
+    } else {
+      toast.error("Identifiants incorrects");
+    }
+    setIsLoading(false);
   };
 
   const handleForgotPassword = () => {
     toast.info("Fonctionnalité de récupération de mot de passe en développement");
   };
 
-  // Boutons de démonstration pour tester différents rôles
-  const quickLogin = (userEmail: string) => {
-    setEmail(userEmail);
-    setPassword("demo123");
-  };
-
+  // Supprimé: Mode démonstration
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary p-4">
       <div className="w-full max-w-md">
@@ -52,53 +46,6 @@ const LoginPage = () => {
             Connectez-vous à votre compte
           </p>
         </div>
-
-        {/* Boutons de démonstration */}
-        <Card className="mb-4 bg-accent/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Mode Démonstration</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => quickLogin('amadou.diallo@fdsut.com')}
-              >
-                Employé
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => quickLogin('ousmane.ba@fdsut.com')}
-              >
-                Chef Cellule
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => quickLogin('ibrahima.fall@fdsut.com')}
-              >
-                Chef Service
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => quickLogin('fatou.ndiaye@fdsut.com')}
-              >
-                RH
-              </Button>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full"
-              onClick={() => quickLogin('awa.sarr@fdsut.com')}
-            >
-              Administrateur
-            </Button>
-          </CardContent>
-        </Card>
 
         {/* Formulaire de connexion */}
         <Card className="shadow-lg">
