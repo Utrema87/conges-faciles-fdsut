@@ -80,6 +80,8 @@ serve(async (req) => {
         user_id: userId,
         role: 'admin'
       })
+    
+    console.log('Role insertion result:', { roleError })
 
     if (roleError) {
       console.error('Role error:', roleError)
