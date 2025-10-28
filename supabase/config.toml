@@ -1,1 +1,4 @@
 project_id = "gazgeminiofjtbunnclv"
+
+[functions.init-admin]
+verify_jwt = false
