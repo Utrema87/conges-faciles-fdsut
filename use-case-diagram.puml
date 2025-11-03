@@ -1,0 +1,127 @@
+@startuml Système de Gestion des Congés
+
+' Définition des acteurs
+actor "👤 Employé" as Employee
+actor "👔 Responsable\nde Cellule" as CellManager
+actor "🎯 Chef de\nService" as ServiceChief
+actor "📋 Ressources\nHumaines" as HR
+actor "⚙️ Administrateur" as Admin
+
+' Héritage des rôles (tous les managers peuvent faire ce qu'un employé peut faire)
+CellManager --|> Employee
+ServiceChief --|> Employee
+HR --|> Employee
+Admin --|> Employee
+
+rectangle "Système de Gestion des Congés" {
+  
+  package "Authentification & Profil" {
+    usecase UC1 as "S'authentifier"
+    usecase UC2 as "Consulter son profil"
+    usecase UC3 as "Modifier son profil"
+    usecase UC20 as "Changer son\nmot de passe"
+  }
+  
+  package "Gestion des Demandes" {
+    usecase UC4 as "Créer une demande\nde congé"
+    usecase UC5 as "Consulter ses\ndemandes"
+    usecase UC6 as "Modifier sa demande\nen attente"
+  }
+  
+  package "Approbation - Cellule" {
+    usecase UC7 as "Approuver/Rejeter\ndemande (Cellule)"
+    usecase UC8 as "Consulter demandes\nde l'équipe"
+  }
+  
+  package "Approbation - Service" {
+    usecase UC9 as "Approuver/Rejeter\ndemande (Service)"
+    usecase UC10 as "Consulter demandes\ndu service"
+  }
+  
+  package "Validation RH" {
+    usecase UC11 as "Validation finale RH"
+    usecase UC12 as "Consulter toutes\nles demandes"
+  }
+  
+  package "Administration" {
+    usecase UC13 as "Gérer les\nutilisateurs"
+    usecase UC14 as "Créer un\nutilisateur"
+    usecase UC15 as "Modifier les rôles"
+    usecase UC16 as "Supprimer un\nutilisateur"
+  }
+  
+  package "Reporting" {
+    usecase UC17 as "Consulter les\nstatistiques"
+    usecase UC18 as "Générer des\nrapports"
+  }
+  
+  package "Notifications" {
+    usecase UC19 as "Consulter les\nnotifications"
+  }
+}
+
+' Relations Employé
+Employee --> UC1
+Employee --> UC2
+Employee --> UC3
+Employee --> UC4
+Employee --> UC5
+Employee --> UC6
+Employee --> UC19
+Employee --> UC20
+
+' Relations Responsable de Cellule
+CellManager --> UC7
+CellManager --> UC8
+
+' Relations Chef de Service
+ServiceChief --> UC9
+ServiceChief --> UC10
+
+' Relations RH
+HR --> UC11
+HR --> UC12
+HR --> UC17
+HR --> UC18
+
+' Relations Admin
+Admin --> UC13
+Admin --> UC14
+Admin --> UC15
+Admin --> UC16
+Admin --> UC17
+Admin --> UC18
+
+' Relations Include/Extend
+UC7 ..> UC8 : <<include>>
+UC9 ..> UC10 : <<include>>
+UC11 ..> UC12 : <<include>>
+UC14 ..> UC15 : <<include>>
+
+' Notes
+note right of UC1
+  Obligatoire pour accéder
+  au système
+end note
+
+note right of UC20
+  Obligatoire à la
+  première connexion
+end note
+
+note bottom of UC7
+  Premier niveau
+  d'approbation
+end note
+
+note bottom of UC9
+  Deuxième niveau
+  d'approbation
+end note
+
+note bottom of UC11
+  Validation finale
+  et définitive
+end note
+
+@enduml

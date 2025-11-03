@@ -1,0 +1,91 @@
+@startuml MCD - Système de Gestion des Congés
+
+' Définition des entités
+entity "AUTH_USERS" as auth_users {
+  * id : UUID <<PK>>
+  --
+  * email : VARCHAR
+  * created_at : TIMESTAMP
+  encrypted_password : VARCHAR
+  raw_user_meta_data : JSONB
+}
+
+entity "PROFILES" as profiles {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * email : TEXT
+  * first_name : TEXT
+  * last_name : TEXT
+  phone : TEXT
+  department : TEXT
+  position : TEXT
+  must_change_password : BOOLEAN
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "USER_ROLES" as user_roles {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * role : app_role
+  created_at : TIMESTAMP
+  --
+  UNIQUE (user_id, role)
+}
+
+entity "LEAVE_REQUESTS" as leave_requests {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * type : TEXT
+  * start_date : DATE
+  * end_date : DATE
+  reason : TEXT
+  status : TEXT
+  approver_id : UUID
+  approved_at : TIMESTAMP
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+' Relations
+auth_users ||--o{ profiles : "has"
+auth_users ||--o{ user_roles : "has"
+auth_users ||--o{ leave_requests : "creates"
+
+' Notes
+note right of auth_users
+  Table système Supabase
+  pour l'authentification
+  (schema: auth)
+end note
+
+note right of profiles
+  Informations personnelles
+  et professionnelles
+  des utilisateurs
+end note
+
+note right of user_roles
+  Gestion des rôles multiples
+  Enum: employee, cell_manager,
+  service_chief, hr, admin
+end note
+
+note right of leave_requests
+  Demandes de congés avec
+  workflow d'approbation
+  Status: pending, approved,
+  rejected, pending_*
+end note
+
+' Légende
+legend right
+  |= Type |= Description |
+  | app_role | ENUM: employee, cell_manager, service_chief, hr, admin |
+  | Status | pending, pending_cell_manager, pending_service_chief, pending_hr, approved, rejected |
+endlegend
+
+@enduml
