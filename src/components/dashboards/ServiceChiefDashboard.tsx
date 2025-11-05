@@ -1,3 +1,28 @@
+/**
+ * SERVICE CHIEF DASHBOARD (CHEF DE SERVICE)
+ * 
+ * Ce composant affiche le tableau de bord pour les chefs de service.
+ * Il permet aux chefs de service de :
+ * - Valider ou rejeter les demandes déjà approuvées par les responsables de cellule
+ * - Visualiser l'ensemble de l'équipe du service (responsables + employés)
+ * - Consulter les statistiques du service
+ * 
+ * Workflow d'approbation :
+ * 1. Reçoit les demandes avec status: pending_service_chief
+ * 2. Ces demandes ont déjà été validées par le responsable de cellule
+ * 3. Si approuvé → status: pending_hr (transmis aux RH pour validation finale)
+ * 4. Si rejeté → status: rejected (fin du processus)
+ * 
+ * Filtrage des données :
+ * - Seules les demandes des employés de SON service sont visibles
+ * - Filtrage par user.service pour garantir l'isolation des données
+ * - Affiche l'historique d'approbation (cellule → service)
+ * 
+ * Sécurité :
+ * - Les RLS policies limitent l'accès aux demandes du service
+ * - Le role 'service_chief' est requis pour accéder à cette interface
+ */
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,9 +34,15 @@ import { getPendingRequestsForServiceChief, demoUsers, approveLeaveRequest, reje
 const ServiceChiefDashboard = () => {
   const { user } = useAuth();
   
+  // Récupère uniquement les demandes validées par les cellules et en attente de validation du service
   const pendingRequests = getPendingRequestsForServiceChief(user?.service || "");
+  // Liste complète des employés du service (tous rôles)
   const serviceEmployees = demoUsers.filter(u => u.service === user?.service);
 
+  /**
+   * Approuve une demande et la transmet aux RH pour validation finale
+   * @param requestId - ID de la demande
+   */
   const handleApprove = (requestId: string) => {
     if (!user) return;
     

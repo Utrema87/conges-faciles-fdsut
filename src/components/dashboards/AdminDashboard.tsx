@@ -1,3 +1,42 @@
+/**
+ * ADMIN DASHBOARD (ADMINISTRATEUR SYSTÈME)
+ * 
+ * Ce composant affiche le tableau de bord pour les administrateurs système.
+ * Il permet aux admins de :
+ * - Créer, modifier et supprimer des utilisateurs
+ * - Gérer les rôles et permissions
+ * - Consulter les statistiques globales du système
+ * - Superviser l'activité de l'application
+ * 
+ * Fonctionnalités principales :
+ * 1. GESTION DES UTILISATEURS :
+ *    - Création de nouveaux comptes avec email/password
+ *    - Attribution des rôles (employee, cell_manager, service_chief, hr, admin)
+ *    - Modification et suppression des utilisateurs
+ * 
+ * 2. GESTION DES RÔLES :
+ *    - Visualisation de la répartition des rôles
+ *    - Modification des rôles des utilisateurs existants
+ * 
+ * 3. VUE D'ENSEMBLE :
+ *    - Statistiques globales (total users, requests, taux de traitement)
+ *    - Activité récente du système
+ * 
+ * 4. CONFIGURATION SYSTÈME :
+ *    - Paramètres généraux de l'application
+ *    - Maintenance et logs
+ * 
+ * Architecture de données :
+ * - Utilise adminService pour interagir avec Supabase
+ * - Appelle les Edge Functions (create-user, delete-user)
+ * - Gère la table user_roles pour les permissions
+ * 
+ * Sécurité :
+ * - ACCÈS TOTAL au système (tous les utilisateurs, toutes les demandes)
+ * - Le role 'admin' est OBLIGATOIRE pour accéder à cette interface
+ * - Les RLS policies admin permettent toutes les opérations CRUD
+ */
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +64,7 @@ import { UserRole } from "@/types";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
+  // État du formulaire de création d'utilisateur
   const [newUserForm, setNewUserForm] = useState({
     firstName: "",
     lastName: "",
@@ -49,11 +89,18 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Charger les données au montage du composant
+  /**
+   * Charge toutes les données au montage du composant
+   * Récupère les utilisateurs, statistiques, répartition des rôles
+   */
   useEffect(() => {
     loadData();
   }, []);
 
+  /**
+   * Fonction principale de chargement des données
+   * Effectue des appels parallèles pour optimiser les performances
+   */
   const loadData = async () => {
     setLoading(true);
     try {
@@ -78,13 +125,20 @@ const AdminDashboard = () => {
     }
   };
 
+  /**
+   * Crée un nouvel utilisateur via l'Edge Function create-user
+   * Validation des champs requis et de la longueur du mot de passe
+   * Appelle adminService.createUser qui interagit avec Supabase Auth
+   */
   const handleCreateUser = async () => {
+    // Validation des champs obligatoires
     if (!newUserForm.firstName || !newUserForm.lastName || !newUserForm.email || 
         !newUserForm.password || !newUserForm.role) {
       toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
 
+    // Validation de la longueur du mot de passe
     if (newUserForm.password.length < 6) {
       toast.error("Le mot de passe doit contenir au moins 6 caractères");
       return;
@@ -129,6 +183,12 @@ const AdminDashboard = () => {
     }
   };
 
+  /**
+   * Supprime un utilisateur via l'Edge Function delete-user
+   * Demande confirmation avant suppression
+   * @param userId - ID de l'utilisateur à supprimer
+   * @param userName - Nom de l'utilisateur (pour l'affichage)
+   */
   const handleDeleteUser = async (userId: string, userName: string) => {
     if (!confirm(`Êtes-vous sûr de vouloir supprimer ${userName} ?`)) {
       return;
@@ -151,6 +211,11 @@ const AdminDashboard = () => {
     toast.info(`Modification de ${userName} (fonctionnalité en développement)`);
   };
 
+  /**
+   * Retourne un badge coloré selon le rôle de l'utilisateur
+   * Chaque rôle a une couleur distinctive pour une identification rapide
+   * @param role - Le rôle de l'utilisateur
+   */
   const getRoleBadge = (role: string) => {
     const roleConfig = {
       'employee': { label: 'Employé', color: 'bg-blue-500' },
@@ -163,6 +228,11 @@ const AdminDashboard = () => {
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
+  /**
+   * Récupère le rôle principal d'un utilisateur
+   * Un utilisateur peut avoir plusieurs rôles, on récupère le premier
+   * @param user - Le profil utilisateur
+   */
   const getUserRole = (user: UserProfile): string => {
     return user.roles?.[0]?.role || 'employee';
   };

@@ -1,3 +1,28 @@
+/**
+ * CELL MANAGER DASHBOARD (RESPONSABLE DE CELLULE)
+ * 
+ * Ce composant affiche le tableau de bord pour les responsables de cellule.
+ * Il permet aux responsables de cellule de :
+ * - Valider ou rejeter les demandes de congés de leurs employés
+ * - Visualiser l'équipe sous leur responsabilité
+ * - Soumettre leurs propres demandes de congés
+ * - Consulter les notifications et rapports
+ * 
+ * Workflow d'approbation :
+ * 1. L'employé soumet une demande (status: pending_cell_manager)
+ * 2. Le responsable de cellule approuve/rejette
+ * 3. Si approuvé → status: pending_service_chief (transmis au chef de service)
+ * 4. Si rejeté → status: rejected (fin du processus)
+ * 
+ * Filtrage des données :
+ * - Seules les demandes des employés de SA cellule sont visibles
+ * - Filtrage par user.cellule pour garantir l'isolation des données
+ * 
+ * Sécurité :
+ * - Les RLS policies limitent l'accès aux demandes de la cellule
+ * - Le role 'cell_manager' est requis pour accéder à cette interface
+ */
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,9 +39,16 @@ import LeaveRequestForm from "@/components/forms/LeaveRequestForm";
 const CellManagerDashboard = () => {
   const { user } = useAuth();
   
+  // Récupère uniquement les demandes en attente pour cette cellule
   const pendingRequests = getPendingRequestsForCellManager(user?.cellule || "");
+  // Liste des employés de la cellule (pour l'onglet "Mon Équipe")
   const cellEmployees = demoUsers.filter(u => u.cellule === user?.cellule && u.role === 'employee');
 
+  /**
+   * Approuve une demande et la transmet au chef de service
+   * @param requestId - ID de la demande
+   * @param comment - Commentaire optionnel du responsable
+   */
   const handleApprove = (requestId: string, comment?: string) => {
     if (!user) return;
     

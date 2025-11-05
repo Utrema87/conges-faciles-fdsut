@@ -1,3 +1,32 @@
+/**
+ * HR DASHBOARD (RESSOURCES HUMAINES)
+ * 
+ * Ce composant affiche le tableau de bord pour les Ressources Humaines.
+ * Il permet aux RH de :
+ * - Effectuer la validation FINALE des demandes de congés
+ * - Gérer les soldes de congés de tous les employés
+ * - Configurer les types de congés (congé annuel, maladie, etc.)
+ * - Générer des rapports et statistiques globales
+ * - Exporter les données pour analyse
+ * 
+ * Workflow d'approbation (dernière étape) :
+ * 1. Reçoit les demandes avec status: pending_hr
+ * 2. Ces demandes ont déjà été validées par le responsable de cellule ET le chef de service
+ * 3. Si approuvé → status: approved (VALIDATION FINALE - processus terminé)
+ * 4. Si rejeté → status: rejected (fin du processus)
+ * 
+ * Fonctionnalités spécifiques RH :
+ * - Mise à jour manuelle des soldes de congés (ajout/retrait de jours)
+ * - Configuration des types de congés et leurs règles (max jours, description)
+ * - Vue globale sur toutes les demandes de l'organisation
+ * - Génération de rapports mensuels et statistiques
+ * 
+ * Sécurité :
+ * - Accès à TOUTES les demandes (pas de filtrage par service/cellule)
+ * - Le role 'hr' est requis pour accéder à cette interface
+ * - Droits de modification des soldes de congés
+ */
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,12 +50,19 @@ import { getPendingRequestsForHR, demoUsers, demoLeaveTypes, approveLeaveRequest
 
 const HRDashboard = () => {
   const { user } = useAuth();
+  // État pour la gestion des soldes de congés
   const [selectedUser, setSelectedUser] = useState("");
   const [balanceUpdate, setBalanceUpdate] = useState("");
   
+  // Récupère TOUTES les demandes en attente de validation RH (dernière étape)
   const pendingRequests = getPendingRequestsForHR();
   const totalEmployees = demoUsers.filter(u => u.role === 'employee').length;
 
+  /**
+   * Validation FINALE d'une demande de congé (dernière étape du workflow)
+   * Change le status à 'approved' - la demande est définitivement validée
+   * @param requestId - ID de la demande
+   */
   const handleFinalApproval = (requestId: string) => {
     if (!user) return;
     

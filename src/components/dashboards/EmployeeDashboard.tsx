@@ -1,3 +1,24 @@
+/**
+ * EMPLOYEE DASHBOARD
+ * 
+ * Ce composant affiche le tableau de bord pour les employés.
+ * Il permet aux employés de :
+ * - Consulter leurs informations personnelles et solde de congés
+ * - Soumettre de nouvelles demandes de congés
+ * - Suivre l'état de leurs demandes en cours
+ * - Recevoir des notifications
+ * - Consulter leurs statistiques personnelles
+ * 
+ * Flux de données :
+ * - Récupère les informations de l'utilisateur depuis AuthContext
+ * - Charge l'historique des demandes de congés via getLeaveRequestsByEmployee()
+ * - Affiche les statistiques en temps réel (solde, demandes en cours)
+ * 
+ * Sécurité :
+ * - Seules les demandes de l'employé connecté sont visibles
+ * - Le user_id est automatiquement associé aux nouvelles demandes
+ */
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,13 +34,20 @@ import DashboardReports from "@/components/reports/DashboardReports";
 
 const EmployeeDashboard = () => {
   const { user } = useAuth();
+  // Charge toutes les demandes de congés de l'employé connecté
   const userRequests = getLeaveRequestsByEmployee(user?.id || "");
 
+  /**
+   * Callback exécuté après la soumission réussie d'une demande
+   */
   const handleFormSuccess = () => {
-    // Optionally refresh data or show additional success message
     toast.info("Votre demande sera traitée dans les plus brefs délais");
   };
 
+  /**
+   * Retourne un badge coloré selon le statut de la demande
+   * @param status - Le statut de la demande (pending_cell_manager, approved, rejected, etc.)
+   */
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending_cell_manager':
