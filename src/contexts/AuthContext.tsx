@@ -47,9 +47,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (profileError) throw profileError;
+      if (!profile) {
+        console.error('Profil non trouvé');
+        return;
+      }
 
       // Récupérer les rôles
       const { data: roles, error: rolesError } = await supabase
@@ -59,7 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (rolesError) throw rolesError;
 
-      const userRole = roles?.[0]?.role || 'employee';
+      const userRole = (roles && roles.length > 0 ? roles[0].role : 'employee') as User['role'];
 
       setUser({
         id: userId,

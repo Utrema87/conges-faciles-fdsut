@@ -81,10 +81,10 @@ export const adminService = {
         .from('user_roles')
         .select('user_id, role');
 
-      const usersWithRoles = profiles?.map(profile => ({
+      const usersWithRoles = (profiles || []).map(profile => ({
         ...profile,
-        roles: roles?.filter(r => r.user_id === profile.user_id).map(r => ({ role: r.role })) || []
-      })) || [];
+        roles: (roles || []).filter(r => r.user_id === profile.user_id).map(r => ({ role: String(r.role) }))
+      }));
       
       return usersWithRoles;
     } catch (error) {
@@ -103,7 +103,11 @@ export const adminService = {
 
       if (roleError) throw roleError;
 
-      const userIds = userRoles?.map(r => r.user_id) || [];
+      const userIds = (userRoles || []).map(r => r.user_id);
+      
+      if (userIds.length === 0) {
+        return [];
+      }
       
       const { data, error } = await supabase
         .from('profiles')
@@ -113,10 +117,10 @@ export const adminService = {
 
       if (error) throw error;
       
-      const usersWithRoles = data?.map(profile => ({
+      const usersWithRoles = (data || []).map(profile => ({
         ...profile,
-        roles: [{ role }]
-      })) || [];
+        roles: [{ role: String(role) }]
+      }));
 
       return usersWithRoles;
     } catch (error) {
@@ -161,14 +165,15 @@ export const adminService = {
   // Mettre à jour un utilisateur
   async updateUser(userId: string, updates: Partial<UserProfile>) {
     try {
+      const updateData: Record<string, any> = {};
+      if (updates.first_name !== undefined) updateData.first_name = updates.first_name;
+      if (updates.last_name !== undefined) updateData.last_name = updates.last_name;
+      if (updates.department !== undefined) updateData.department = updates.department;
+      if (updates.position !== undefined) updateData.position = updates.position;
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          first_name: updates.first_name,
-          last_name: updates.last_name,
-          department: updates.department,
-          position: updates.position
-        })
+        .update(updateData)
         .eq('user_id', userId);
 
       if (error) throw error;
@@ -192,10 +197,10 @@ export const adminService = {
       // Ajouter le nouveau rôle
       const { error } = await supabase
         .from('user_roles')
-        .insert({
+        .insert([{
           user_id: userId,
-          role: newRole
-        });
+          role: newRole as any
+        }]);
 
       if (error) throw error;
 
@@ -255,7 +260,8 @@ export const adminService = {
 
       if (error) throw error;
 
-      const distribution = data.reduce((acc: Record<string, number>, { role }) => {
+      const distribution = (data || []).reduce((acc: Record<string, number>, item) => {
+        const role = String(item.role);
         acc[role] = (acc[role] || 0) + 1;
         return acc;
       }, {});
