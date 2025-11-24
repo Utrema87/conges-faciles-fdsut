@@ -298,8 +298,8 @@ export class AuthService {
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .eq('role', role)
-        .single();
+        .eq('role', role as any)
+        .maybeSingle();
 
       return !error && !!data;
     } catch (error) {
@@ -322,7 +322,7 @@ export class AuthService {
         return [];
       }
 
-      return data.map(r => r.role as UserRole);
+      return data.map(r => String(r.role) as UserRole);
     } catch (error) {
       console.error('[AuthService] Get user roles error:', error);
       return [];
@@ -343,7 +343,7 @@ export class AuthService {
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (profileError || !profile) {
         console.error('[AuthService] Profile load error:', profileError);
@@ -361,7 +361,7 @@ export class AuthService {
       }
 
       // Prendre le premier rôle ou 'employee' par défaut
-      const userRole = (roles?.[0]?.role as UserRole) || 'employee';
+      const userRole = (roles && roles.length > 0 ? String(roles[0].role) : 'employee') as UserRole;
 
       // Construire l'objet User
       const user: User = {
