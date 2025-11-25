@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      conflict_rules: {
+        Row: {
+          created_at: string | null
+          department: string
+          id: string
+          is_active: boolean
+          max_concurrent_leaves: number | null
+          min_employees_required: number
+          period_end: string | null
+          period_start: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department: string
+          id?: string
+          is_active?: boolean
+          max_concurrent_leaves?: number | null
+          min_employees_required?: number
+          period_end?: string | null
+          period_start?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string
+          id?: string
+          is_active?: boolean
+          max_concurrent_leaves?: number | null
+          min_employees_required?: number
+          period_end?: string | null
+          period_start?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       leave_requests: {
         Row: {
           approved_at: string | null
@@ -95,6 +131,36 @@ export type Database = {
           position?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      service_substitutions: {
+        Row: {
+          created_at: string | null
+          department: string
+          end_date: string
+          id: string
+          original_user_id: string
+          start_date: string
+          substitute_user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          department: string
+          end_date: string
+          id?: string
+          original_user_id: string
+          start_date: string
+          substitute_user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          department?: string
+          end_date?: string
+          id?: string
+          original_user_id?: string
+          start_date?: string
+          substitute_user_id?: string
         }
         Relationships: []
       }
