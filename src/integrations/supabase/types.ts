@@ -14,196 +14,16 @@ export type Database = {
   }
   public: {
     Tables: {
-      conflict_rules: {
-        Row: {
-          created_at: string | null
-          department: string
-          id: string
-          is_active: boolean
-          max_concurrent_leaves: number | null
-          min_employees_required: number
-          period_end: string | null
-          period_start: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          department: string
-          id?: string
-          is_active?: boolean
-          max_concurrent_leaves?: number | null
-          min_employees_required?: number
-          period_end?: string | null
-          period_start?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          department?: string
-          id?: string
-          is_active?: boolean
-          max_concurrent_leaves?: number | null
-          min_employees_required?: number
-          period_end?: string | null
-          period_start?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      leave_requests: {
-        Row: {
-          approved_at: string | null
-          approver_id: string | null
-          created_at: string | null
-          end_date: string
-          id: string
-          reason: string | null
-          start_date: string
-          status: string | null
-          type: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          approved_at?: string | null
-          approver_id?: string | null
-          created_at?: string | null
-          end_date: string
-          id?: string
-          reason?: string | null
-          start_date: string
-          status?: string | null
-          type: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          approved_at?: string | null
-          approver_id?: string | null
-          created_at?: string | null
-          end_date?: string
-          id?: string
-          reason?: string | null
-          start_date?: string
-          status?: string | null
-          type?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          created_at: string | null
-          department: string | null
-          email: string
-          first_name: string
-          id: string
-          last_name: string
-          must_change_password: boolean | null
-          phone: string | null
-          position: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          department?: string | null
-          email: string
-          first_name: string
-          id?: string
-          last_name: string
-          must_change_password?: boolean | null
-          phone?: string | null
-          position?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          department?: string | null
-          email?: string
-          first_name?: string
-          id?: string
-          last_name?: string
-          must_change_password?: boolean | null
-          phone?: string | null
-          position?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      service_substitutions: {
-        Row: {
-          created_at: string | null
-          department: string
-          end_date: string
-          id: string
-          original_user_id: string
-          start_date: string
-          substitute_user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          department: string
-          end_date: string
-          id?: string
-          original_user_id: string
-          start_date: string
-          substitute_user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          department?: string
-          end_date?: string
-          id?: string
-          original_user_id?: string
-          start_date?: string
-          substitute_user_id?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string | null
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_user_roles: {
-        Args: { _user_id: string }
-        Returns: Database["public"]["Enums"]["app_role"][]
-      }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "admin" | "employee" | "hr" | "service_chief" | "cell_manager"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -330,8 +150,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "employee", "hr", "service_chief", "cell_manager"],
-    },
+    Enums: {},
   },
 } as const
