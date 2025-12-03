@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/types";
+import { DbProfile, DbUserRole, DbLeaveRequest } from "@/types/database";
 
 export interface CreateUserData {
   email: string;
@@ -69,17 +70,17 @@ export const adminService = {
   // Récupérer tous les utilisateurs avec leurs rôles
   async getAllUsers(): Promise<UserProfile[]> {
     try {
-      const { data: profiles, error } = await supabase
-        .from('profiles')
+      const { data: profiles, error } = await (supabase
+        .from('profiles' as any)
         .select('*')
-        .order('first_name');
+        .order('first_name') as any) as { data: DbProfile[] | null; error: any };
 
       if (error) throw error;
       
       // Récupérer les rôles séparément
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
+      const { data: roles } = await (supabase
+        .from('user_roles' as any)
+        .select('user_id, role') as any) as { data: DbUserRole[] | null; error: any };
 
       const usersWithRoles = (profiles || []).map(profile => ({
         ...profile,
@@ -96,10 +97,10 @@ export const adminService = {
   // Récupérer les utilisateurs par rôle
   async getUsersByRole(role: UserRole): Promise<UserProfile[]> {
     try {
-      const { data: userRoles, error: roleError } = await supabase
-        .from('user_roles')
+      const { data: userRoles, error: roleError } = await (supabase
+        .from('user_roles' as any)
         .select('user_id')
-        .eq('role', role);
+        .eq('role', role) as any) as { data: { user_id: string }[] | null; error: any };
 
       if (roleError) throw roleError;
 
@@ -109,11 +110,11 @@ export const adminService = {
         return [];
       }
       
-      const { data, error } = await supabase
-        .from('profiles')
+      const { data, error } = await (supabase
+        .from('profiles' as any)
         .select('*')
         .in('user_id', userIds)
-        .order('first_name');
+        .order('first_name') as any) as { data: DbProfile[] | null; error: any };
 
       if (error) throw error;
       
@@ -171,10 +172,10 @@ export const adminService = {
       if (updates.department !== undefined) updateData.department = updates.department;
       if (updates.position !== undefined) updateData.position = updates.position;
 
-      const { error } = await supabase
-        .from('profiles')
+      const { error } = await (supabase
+        .from('profiles' as any)
         .update(updateData)
-        .eq('user_id', userId);
+        .eq('user_id', userId) as any);
 
       if (error) throw error;
 
@@ -189,18 +190,18 @@ export const adminService = {
   async updateUserRole(userId: string, newRole: UserRole) {
     try {
       // Supprimer l'ancien rôle
-      await supabase
-        .from('user_roles')
+      await (supabase
+        .from('user_roles' as any)
         .delete()
-        .eq('user_id', userId);
+        .eq('user_id', userId) as any);
 
       // Ajouter le nouveau rôle
-      const { error } = await supabase
-        .from('user_roles')
+      const { error } = await (supabase
+        .from('user_roles' as any)
         .insert([{
           user_id: userId,
-          role: newRole as any
-        }]);
+          role: newRole
+        }]) as any);
 
       if (error) throw error;
 
@@ -215,24 +216,24 @@ export const adminService = {
   async getStatistics() {
     try {
       // Compter les utilisateurs
-      const { count: userCount, error: userError } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
+      const { count: userCount, error: userError } = await (supabase
+        .from('profiles' as any)
+        .select('*', { count: 'exact', head: true }) as any);
 
       if (userError) throw userError;
 
       // Compter les demandes de congés
-      const { count: requestCount, error: requestError } = await supabase
-        .from('leave_requests')
-        .select('*', { count: 'exact', head: true });
+      const { count: requestCount, error: requestError } = await (supabase
+        .from('leave_requests' as any)
+        .select('*', { count: 'exact', head: true }) as any);
 
       if (requestError) throw requestError;
 
       // Compter les demandes en attente
-      const { count: pendingCount, error: pendingError } = await supabase
-        .from('leave_requests')
+      const { count: pendingCount, error: pendingError } = await (supabase
+        .from('leave_requests' as any)
         .select('*', { count: 'exact', head: true })
-        .like('status', 'pending%');
+        .like('status', 'pending%') as any);
 
       if (pendingError) throw pendingError;
 
@@ -254,9 +255,9 @@ export const adminService = {
   // Obtenir le nombre d'utilisateurs par rôle
   async getRoleDistribution() {
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role');
+      const { data, error } = await (supabase
+        .from('user_roles' as any)
+        .select('role') as any) as { data: DbUserRole[] | null; error: any };
 
       if (error) throw error;
 

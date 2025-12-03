@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { DbProfile, DbUserRole } from '@/types/database';
 
 interface AuthContextType {
   user: User | null;
@@ -43,11 +44,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loadUserProfile = async (userId: string) => {
     try {
       // Récupérer le profil
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
+      const { data: profile, error: profileError } = await (supabase
+        .from('profiles' as any)
         .select('*')
         .eq('user_id', userId)
-        .maybeSingle();
+        .maybeSingle() as any) as { data: DbProfile | null; error: any };
 
       if (profileError) throw profileError;
       if (!profile) {
@@ -56,10 +57,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       // Récupérer les rôles
-      const { data: roles, error: rolesError } = await supabase
-        .from('user_roles')
+      const { data: roles, error: rolesError } = await (supabase
+        .from('user_roles' as any)
         .select('role')
-        .eq('user_id', userId);
+        .eq('user_id', userId) as any) as { data: DbUserRole[] | null; error: any };
 
       if (rolesError) throw rolesError;
 

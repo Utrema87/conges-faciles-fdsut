@@ -8,15 +8,11 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { Tables } from '@/integrations/supabase/types';
+import { DbLeaveRequest, DbConflictRule, DbServiceSubstitution, DbProfile } from '@/types/database';
 
 // ============================================================================
 // TYPES ET INTERFACES
 // ============================================================================
-
-type DbLeaveRequest = Tables<'leave_requests'>;
-type DbConflictRule = Tables<'conflict_rules'>;
-type DbSubstitution = Tables<'service_substitutions'>;
 
 export interface ConflictDetectionParams {
   userId: string;
@@ -121,8 +117,8 @@ export class ConflictDetectionService {
     endDate: string
   ): Promise<DbConflictRule[]> {
     try {
-      const { data, error } = await supabase
-        .from('conflict_rules')
+      const { data, error } = await (supabase
+        .from('conflict_rules' as any)
         .select('*')
         .eq('department', department)
         .eq('is_active', true)
@@ -131,7 +127,7 @@ export class ConflictDetectionService {
           `and(period_start.lte.${endDate},period_end.gte.${startDate}),` +
           `and(period_start.lte.${endDate},period_end.is.null),` +
           `and(period_start.is.null,period_end.gte.${startDate})`
-        );
+        ) as any) as { data: DbConflictRule[] | null; error: any };
 
       if (error) {
         console.error('[ConflictDetectionService] Error fetching rules:', error);
@@ -156,10 +152,10 @@ export class ConflictDetectionService {
   ): Promise<DbLeaveRequest[]> {
     try {
       // Récupérer les utilisateurs du département
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
+      const { data: profiles, error: profilesError } = await (supabase
+        .from('profiles' as any)
         .select('user_id')
-        .eq('department', department);
+        .eq('department', department) as any) as { data: { user_id: string }[] | null; error: any };
 
       if (profilesError || !profiles) {
         console.error('[ConflictDetectionService] Error fetching profiles:', profilesError);
@@ -174,7 +170,7 @@ export class ConflictDetectionService {
 
       // Récupérer les demandes approuvées ou en attente qui se chevauchent
       let query = supabase
-        .from('leave_requests')
+        .from('leave_requests' as any)
         .select('*')
         .in('user_id', userIds)
         .in('status', ['approved', 'pending', 'pending_cell_manager', 'pending_service_chief', 'pending_hr'])
@@ -184,7 +180,7 @@ export class ConflictDetectionService {
         query = query.neq('id', excludeRequestId);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await (query as any) as { data: DbLeaveRequest[] | null; error: any };
 
       if (error) {
         console.error('[ConflictDetectionService] Error fetching requests:', error);
@@ -205,13 +201,13 @@ export class ConflictDetectionService {
     department: string,
     startDate: string,
     endDate: string
-  ): Promise<DbSubstitution[]> {
+  ): Promise<DbServiceSubstitution[]> {
     try {
-      const { data, error } = await supabase
-        .from('service_substitutions')
+      const { data, error } = await (supabase
+        .from('service_substitutions' as any)
         .select('*')
         .eq('department', department)
-        .or(`and(start_date.lte.${endDate},end_date.gte.${startDate})`);
+        .or(`and(start_date.lte.${endDate},end_date.gte.${startDate})`) as any) as { data: DbServiceSubstitution[] | null; error: any };
 
       if (error) {
         console.error('[ConflictDetectionService] Error fetching substitutions:', error);
@@ -230,7 +226,7 @@ export class ConflictDetectionService {
    */
   private static calculateEffectiveAbsences(
     requests: DbLeaveRequest[],
-    substitutions: DbSubstitution[]
+    substitutions: DbServiceSubstitution[]
   ): number {
     // Compter les employés uniques en congé
     const uniqueAbsentees = new Set(requests.map(r => r.user_id));
@@ -251,10 +247,10 @@ export class ConflictDetectionService {
    */
   private static async getDepartmentEmployeeCount(department: string): Promise<number> {
     try {
-      const { count, error } = await supabase
-        .from('profiles')
+      const { count, error } = await (supabase
+        .from('profiles' as any)
         .select('*', { count: 'exact', head: true })
-        .eq('department', department);
+        .eq('department', department) as any);
 
       if (error) {
         console.error('[ConflictDetectionService] Error counting employees:', error);
@@ -276,7 +272,7 @@ export class ConflictDetectionService {
     effectiveAbsences: number,
     totalEmployees: number,
     requests: DbLeaveRequest[],
-    substitutions: DbSubstitution[]
+    substitutions: DbServiceSubstitution[]
   ): ConflictResult {
     // Si aucune règle définie, pas de conflit
     if (rules.length === 0) {
@@ -352,8 +348,8 @@ export class ConflictDetectionService {
     error?: string 
   }> {
     try {
-      const { data, error } = await supabase
-        .from('conflict_rules')
+      const { data, error } = await (supabase
+        .from('conflict_rules' as any)
         .insert({
           department: rule.department,
           period_start: rule.periodStart || null,
@@ -363,14 +359,14 @@ export class ConflictDetectionService {
           is_active: rule.isActive,
         })
         .select()
-        .single();
+        .single() as any) as { data: DbConflictRule | null; error: any };
 
       if (error) {
         console.error('[ConflictDetectionService] Create rule error:', error);
         return { success: false, error: error.message };
       }
 
-      return { success: true, rule: data };
+      return { success: true, rule: data || undefined };
     } catch (error: any) {
       console.error('[ConflictDetectionService] Create rule exception:', error);
       return { success: false, error: error.message };
@@ -393,10 +389,10 @@ export class ConflictDetectionService {
       if (updates.maxConcurrentLeaves !== undefined) updateData.max_concurrent_leaves = updates.maxConcurrentLeaves;
       if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
 
-      const { error } = await supabase
-        .from('conflict_rules')
+      const { error } = await (supabase
+        .from('conflict_rules' as any)
         .update(updateData)
-        .eq('id', ruleId);
+        .eq('id', ruleId) as any);
 
       if (error) {
         console.error('[ConflictDetectionService] Update rule error:', error);
@@ -415,11 +411,11 @@ export class ConflictDetectionService {
    */
   static async getConflictRulesByDepartment(department: string): Promise<DbConflictRule[]> {
     try {
-      const { data, error } = await supabase
-        .from('conflict_rules')
+      const { data, error } = await (supabase
+        .from('conflict_rules' as any)
         .select('*')
         .eq('department', department)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as any) as { data: DbConflictRule[] | null; error: any };
 
       if (error) {
         console.error('[ConflictDetectionService] Get rules error:', error);
@@ -442,12 +438,12 @@ export class ConflictDetectionService {
    */
   static async createSubstitution(substitution: Omit<ServiceSubstitution, 'id'>): Promise<{ 
     success: boolean; 
-    substitution?: DbSubstitution; 
+    substitution?: DbServiceSubstitution; 
     error?: string 
   }> {
     try {
-      const { data, error } = await supabase
-        .from('service_substitutions')
+      const { data, error } = await (supabase
+        .from('service_substitutions' as any)
         .insert({
           original_user_id: substitution.originalUserId,
           substitute_user_id: substitution.substituteUserId,
@@ -456,14 +452,14 @@ export class ConflictDetectionService {
           end_date: substitution.endDate,
         })
         .select()
-        .single();
+        .single() as any) as { data: DbServiceSubstitution | null; error: any };
 
       if (error) {
         console.error('[ConflictDetectionService] Create substitution error:', error);
         return { success: false, error: error.message };
       }
 
-      return { success: true, substitution: data };
+      return { success: true, substitution: data || undefined };
     } catch (error: any) {
       console.error('[ConflictDetectionService] Create substitution exception:', error);
       return { success: false, error: error.message };
@@ -473,13 +469,13 @@ export class ConflictDetectionService {
   /**
    * Récupérer les remplacements pour un utilisateur
    */
-  static async getSubstitutionsForUser(userId: string): Promise<DbSubstitution[]> {
+  static async getSubstitutionsForUser(userId: string): Promise<DbServiceSubstitution[]> {
     try {
-      const { data, error } = await supabase
-        .from('service_substitutions')
+      const { data, error } = await (supabase
+        .from('service_substitutions' as any)
         .select('*')
         .or(`original_user_id.eq.${userId},substitute_user_id.eq.${userId}`)
-        .order('start_date', { ascending: false });
+        .order('start_date', { ascending: false }) as any) as { data: DbServiceSubstitution[] | null; error: any };
 
       if (error) {
         console.error('[ConflictDetectionService] Get substitutions error:', error);
@@ -501,10 +497,10 @@ export class ConflictDetectionService {
     error?: string 
   }> {
     try {
-      const { error } = await supabase
-        .from('service_substitutions')
+      const { error } = await (supabase
+        .from('service_substitutions' as any)
         .delete()
-        .eq('id', substitutionId);
+        .eq('id', substitutionId) as any);
 
       if (error) {
         console.error('[ConflictDetectionService] Delete substitution error:', error);
@@ -517,39 +513,4 @@ export class ConflictDetectionService {
       return { success: false, error: error.message };
     }
   }
-}
-
-// ============================================================================
-// FONCTIONS UTILITAIRES
-// ============================================================================
-
-/**
- * Vérifie si deux périodes se chevauchent
- */
-export function periodsOverlap(
-  start1: string,
-  end1: string,
-  start2: string,
-  end2: string
-): boolean {
-  const s1 = new Date(start1);
-  const e1 = new Date(end1);
-  const s2 = new Date(start2);
-  const e2 = new Date(end2);
-
-  return s1 <= e2 && e1 >= s2;
-}
-
-/**
- * Obtient une description textuelle d'un type de conflit
- */
-export function getConflictTypeLabel(type: ConflictResult['conflictType']): string {
-  const labels: Record<string, string> = {
-    'MIN_EMPLOYEES': 'Présence minimale non respectée',
-    'MAX_CONCURRENT': 'Nombre maximum de congés simultanés dépassé',
-    'OVERLAPPING': 'Chevauchement de congés',
-    'CUSTOM': 'Règle personnalisée non respectée',
-  };
-
-  return type ? labels[type] : 'Conflit détecté';
 }
