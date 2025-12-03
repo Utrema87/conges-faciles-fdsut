@@ -9,6 +9,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserRole } from '@/types';
 import { Session, AuthError } from '@supabase/supabase-js';
+import { DbProfile, DbUserRole } from '@/types/database';
 
 // ============================================================================
 // TYPES ET INTERFACES
@@ -294,12 +295,12 @@ export class AuthService {
    */
   static async hasRole(userId: string, role: UserRole): Promise<boolean> {
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
+      const { data, error } = await (supabase
+        .from('user_roles' as any)
         .select('role')
         .eq('user_id', userId)
-        .eq('role', role as any)
-        .maybeSingle();
+        .eq('role', role)
+        .maybeSingle() as any);
 
       return !error && !!data;
     } catch (error) {
@@ -313,10 +314,10 @@ export class AuthService {
    */
   static async getUserRoles(userId: string): Promise<UserRole[]> {
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
+      const { data, error } = await (supabase
+        .from('user_roles' as any)
         .select('role')
-        .eq('user_id', userId);
+        .eq('user_id', userId) as any) as { data: DbUserRole[] | null; error: any };
 
       if (error || !data) {
         return [];
@@ -339,11 +340,11 @@ export class AuthService {
   private static async loadUserProfile(userId: string): Promise<User | null> {
     try {
       // Récupérer le profil
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
+      const { data: profile, error: profileError } = await (supabase
+        .from('profiles' as any)
         .select('*')
         .eq('user_id', userId)
-        .maybeSingle();
+        .maybeSingle() as any) as { data: DbProfile | null; error: any };
 
       if (profileError || !profile) {
         console.error('[AuthService] Profile load error:', profileError);
@@ -351,10 +352,10 @@ export class AuthService {
       }
 
       // Récupérer les rôles
-      const { data: roles, error: rolesError } = await supabase
-        .from('user_roles')
+      const { data: roles, error: rolesError } = await (supabase
+        .from('user_roles' as any)
         .select('role')
-        .eq('user_id', userId);
+        .eq('user_id', userId) as any) as { data: DbUserRole[] | null; error: any };
 
       if (rolesError) {
         console.error('[AuthService] Roles load error:', rolesError);

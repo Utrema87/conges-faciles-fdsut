@@ -6,8 +6,8 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { LeaveRequest, LeaveStatus } from '@/types';
-import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { LeaveStatus } from '@/types';
+import { DbLeaveRequest } from '@/types/database';
 
 // ============================================================================
 // TYPES ET INTERFACES
@@ -50,8 +50,6 @@ export interface LeaveRequestStats {
   byMonth: Record<string, number>;
 }
 
-type DbLeaveRequest = Tables<'leave_requests'>;
-
 // ============================================================================
 // SERVICE PRINCIPAL
 // ============================================================================
@@ -66,7 +64,7 @@ export class DemandeService {
     error?: string 
   }> {
     try {
-      const insertData: TablesInsert<'leave_requests'> = {
+      const insertData = {
         user_id: data.user_id,
         type: data.type,
         start_date: data.start_date,
@@ -75,11 +73,11 @@ export class DemandeService {
         status: 'pending',
       };
 
-      const { data: request, error } = await supabase
-        .from('leave_requests')
+      const { data: request, error } = await (supabase
+        .from('leave_requests' as any)
         .insert(insertData)
         .select()
-        .single();
+        .single() as any) as { data: DbLeaveRequest | null; error: any };
 
       if (error) {
         console.error('[DemandeService] Create error:', error);
@@ -91,7 +89,7 @@ export class DemandeService {
 
       return {
         success: true,
-        request: request,
+        request: request || undefined,
       };
     } catch (error: any) {
       console.error('[DemandeService] Create exception:', error);
@@ -107,11 +105,11 @@ export class DemandeService {
    */
   static async getLeaveRequestById(requestId: string): Promise<DbLeaveRequest | null> {
     try {
-      const { data, error } = await supabase
-        .from('leave_requests')
+      const { data, error } = await (supabase
+        .from('leave_requests' as any)
         .select('*')
         .eq('id', requestId)
-        .maybeSingle();
+        .maybeSingle() as any) as { data: DbLeaveRequest | null; error: any };
 
       if (error) {
         console.error('[DemandeService] Get by ID error:', error);
@@ -130,11 +128,11 @@ export class DemandeService {
    */
   static async getLeaveRequestsByUser(userId: string): Promise<DbLeaveRequest[]> {
     try {
-      const { data, error } = await supabase
-        .from('leave_requests')
+      const { data, error } = await (supabase
+        .from('leave_requests' as any)
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as any) as { data: DbLeaveRequest[] | null; error: any };
 
       if (error) {
         console.error('[DemandeService] Get by user error:', error);
@@ -154,7 +152,7 @@ export class DemandeService {
   static async getLeaveRequestsWithFilters(filters: LeaveRequestFilters): Promise<DbLeaveRequest[]> {
     try {
       let query = supabase
-        .from('leave_requests')
+        .from('leave_requests' as any)
         .select('*');
 
       // Appliquer les filtres
@@ -188,7 +186,7 @@ export class DemandeService {
 
       query = query.order('created_at', { ascending: false });
 
-      const { data, error } = await query;
+      const { data, error } = await (query as any) as { data: DbLeaveRequest[] | null; error: any };
 
       if (error) {
         console.error('[DemandeService] Get with filters error:', error);
@@ -207,11 +205,11 @@ export class DemandeService {
    */
   static async getPendingRequestsForApprover(status: LeaveStatus): Promise<DbLeaveRequest[]> {
     try {
-      const { data, error } = await supabase
-        .from('leave_requests')
+      const { data, error } = await (supabase
+        .from('leave_requests' as any)
         .select('*')
         .eq('status', status)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true }) as any) as { data: DbLeaveRequest[] | null; error: any };
 
       if (error) {
         console.error('[DemandeService] Get pending error:', error);
@@ -233,7 +231,7 @@ export class DemandeService {
     updates: UpdateLeaveRequestData
   ): Promise<{ success: boolean; request?: DbLeaveRequest; error?: string }> {
     try {
-      const updateData: TablesUpdate<'leave_requests'> = {};
+      const updateData: Record<string, any> = {};
       
       if (updates.type !== undefined) updateData.type = updates.type;
       if (updates.start_date !== undefined) updateData.start_date = updates.start_date;
@@ -243,12 +241,12 @@ export class DemandeService {
       if (updates.approver_id !== undefined) updateData.approver_id = updates.approver_id;
       if (updates.approved_at !== undefined) updateData.approved_at = updates.approved_at;
 
-      const { data, error } = await supabase
-        .from('leave_requests')
+      const { data, error } = await (supabase
+        .from('leave_requests' as any)
         .update(updateData)
         .eq('id', requestId)
         .select()
-        .single();
+        .single() as any) as { data: DbLeaveRequest | null; error: any };
 
       if (error) {
         console.error('[DemandeService] Update error:', error);
@@ -260,7 +258,7 @@ export class DemandeService {
 
       return {
         success: true,
-        request: data,
+        request: data || undefined,
       };
     } catch (error: any) {
       console.error('[DemandeService] Update exception:', error);
@@ -280,14 +278,14 @@ export class DemandeService {
     nextStatus: LeaveStatus
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const { error } = await supabase
-        .from('leave_requests')
+      const { error } = await (supabase
+        .from('leave_requests' as any)
         .update({
           status: nextStatus,
           approver_id: approverId,
           approved_at: new Date().toISOString(),
         })
-        .eq('id', requestId);
+        .eq('id', requestId) as any);
 
       if (error) {
         console.error('[DemandeService] Approve error:', error);
@@ -316,7 +314,7 @@ export class DemandeService {
     reason?: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const updateData: TablesUpdate<'leave_requests'> = {
+      const updateData: Record<string, any> = {
         status: 'rejected',
         approver_id: approverId,
         approved_at: new Date().toISOString(),
@@ -326,10 +324,10 @@ export class DemandeService {
         updateData.reason = reason;
       }
 
-      const { error } = await supabase
-        .from('leave_requests')
+      const { error } = await (supabase
+        .from('leave_requests' as any)
         .update(updateData)
-        .eq('id', requestId);
+        .eq('id', requestId) as any);
 
       if (error) {
         console.error('[DemandeService] Reject error:', error);
@@ -354,10 +352,10 @@ export class DemandeService {
    */
   static async cancelLeaveRequest(requestId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const { error } = await supabase
-        .from('leave_requests')
+      const { error } = await (supabase
+        .from('leave_requests' as any)
         .update({ status: 'cancelled' })
-        .eq('id', requestId);
+        .eq('id', requestId) as any);
 
       if (error) {
         console.error('[DemandeService] Cancel error:', error);
@@ -383,14 +381,14 @@ export class DemandeService {
   static async getLeaveRequestStats(userId?: string): Promise<LeaveRequestStats> {
     try {
       let query = supabase
-        .from('leave_requests')
+        .from('leave_requests' as any)
         .select('*');
 
       if (userId) {
         query = query.eq('user_id', userId);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await (query as any) as { data: DbLeaveRequest[] | null; error: any };
 
       if (error) {
         console.error('[DemandeService] Get stats error:', error);
@@ -437,12 +435,12 @@ export class DemandeService {
     try {
       // Note: Pour une recherche avancée par nom d'employé, 
       // il faudrait joindre avec la table profiles
-      const { data, error } = await supabase
-        .from('leave_requests')
+      const { data, error } = await (supabase
+        .from('leave_requests' as any)
         .select('*')
         .or(`type.ilike.%${searchTerm}%,reason.ilike.%${searchTerm}%`)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(50) as any) as { data: DbLeaveRequest[] | null; error: any };
 
       if (error) {
         console.error('[DemandeService] Search error:', error);
@@ -467,7 +465,7 @@ export class DemandeService {
   ): Promise<boolean> {
     try {
       let query = supabase
-        .from('leave_requests')
+        .from('leave_requests' as any)
         .select('id')
         .eq('user_id', userId)
         .neq('status', 'rejected')
@@ -478,7 +476,7 @@ export class DemandeService {
         query = query.neq('id', excludeRequestId);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await (query as any) as { data: { id: string }[] | null; error: any };
 
       if (error) {
         console.error('[DemandeService] Check overlap error:', error);
@@ -506,74 +504,99 @@ export class DemandeService {
       byMonth: {},
     };
   }
-}
 
-// ============================================================================
-// FONCTIONS UTILITAIRES
-// ============================================================================
-
-/**
- * Calculer le nombre de jours ouvrés entre deux dates
- */
-export function calculateWorkingDays(startDate: string, endDate: string): number {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  let workingDays = 0;
-
-  const currentDate = new Date(start);
-  while (currentDate <= end) {
-    const dayOfWeek = currentDate.getDay();
-    // Exclure samedi (6) et dimanche (0)
-    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-      workingDays++;
-    }
-    currentDate.setDate(currentDate.getDate() + 1);
+  /**
+   * Convertir une demande DB en format LeaveRequest frontend
+   */
+  static convertToLeaveRequest(dbRequest: DbLeaveRequest): {
+    id: string;
+    userId: string;
+    type: string;
+    startDate: string;
+    endDate: string;
+    reason: string;
+    status: LeaveStatus;
+    approverId?: string;
+    approvedAt?: string;
+    createdAt: string;
+    updatedAt: string;
+  } {
+    return {
+      id: dbRequest.id,
+      userId: dbRequest.user_id,
+      type: dbRequest.type,
+      startDate: dbRequest.start_date,
+      endDate: dbRequest.end_date,
+      reason: dbRequest.reason || '',
+      status: (dbRequest.status || 'pending') as LeaveStatus,
+      approverId: dbRequest.approver_id || undefined,
+      approvedAt: dbRequest.approved_at || undefined,
+      createdAt: dbRequest.created_at || new Date().toISOString(),
+      updatedAt: dbRequest.updated_at || new Date().toISOString(),
+    };
   }
 
-  return workingDays;
-}
+  /**
+   * Calculer le nombre de jours ouvrés entre deux dates
+   */
+  static calculateBusinessDays(startDate: string, endDate: string): number {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    let count = 0;
+    const current = new Date(start);
 
-/**
- * Formater une date pour l'affichage
- */
-export function formatLeaveDate(date: string): string {
-  return new Date(date).toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
+    while (current <= end) {
+      const dayOfWeek = current.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        count++;
+      }
+      current.setDate(current.getDate() + 1);
+    }
 
-/**
- * Obtenir le libellé d'un statut
- */
-export function getStatusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    'pending': 'En attente',
-    'pending_cell_manager': 'En attente - Responsable de cellule',
-    'pending_service_chief': 'En attente - Chef de service',
-    'pending_hr': 'En attente - RH',
-    'approved': 'Approuvée',
-    'rejected': 'Rejetée',
-    'cancelled': 'Annulée',
-  };
+    return count;
+  }
 
-  return labels[status] || status;
-}
+  /**
+   * Valider les données d'une demande de congé
+   */
+  static validateLeaveRequest(data: CreateLeaveRequestData): { valid: boolean; errors: string[] } {
+    const errors: string[] = [];
 
-/**
- * Obtenir la couleur associée à un statut
- */
-export function getStatusColor(status: string): string {
-  const colors: Record<string, string> = {
-    'pending': 'warning',
-    'pending_cell_manager': 'info',
-    'pending_service_chief': 'info',
-    'pending_hr': 'info',
-    'approved': 'success',
-    'rejected': 'error',
-    'cancelled': 'secondary',
-  };
+    if (!data.user_id) {
+      errors.push('L\'identifiant utilisateur est requis');
+    }
 
-  return colors[status] || 'default';
+    if (!data.type) {
+      errors.push('Le type de congé est requis');
+    }
+
+    if (!data.start_date) {
+      errors.push('La date de début est requise');
+    }
+
+    if (!data.end_date) {
+      errors.push('La date de fin est requise');
+    }
+
+    if (data.start_date && data.end_date) {
+      const start = new Date(data.start_date);
+      const end = new Date(data.end_date);
+      
+      if (start > end) {
+        errors.push('La date de début doit être antérieure à la date de fin');
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (start < today) {
+        errors.push('La date de début ne peut pas être dans le passé');
+      }
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+    };
+  }
 }
